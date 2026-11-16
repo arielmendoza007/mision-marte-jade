@@ -151,12 +151,16 @@ public class ConsolaMision extends JFrame {
             historial.setLineWrap(true);
             historial.setWrapStyleWord(true);
             historial.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 18));
-            historial.setCaretPosition(historial.getDocument().getLength());
-            detalle.add(new JScrollPane(historial));
+            historial.setBackground(registro.getBackground());
+            historial.setForeground(registro.getForeground());
+            historial.setCaretColor(registro.getCaretColor());
+            JScrollPane vista = new JScrollPane(historial);
+            detalle.add(vista);
             detalle.setSize(getWidth() * 9 / 10, getHeight() * 3 / 4);
             detalle.setLocationRelativeTo(this);
             detalle.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             detalle.setVisible(true);
+            SwingUtilities.invokeLater(() -> historial.setCaretPosition(historial.getDocument().getLength()));
         });
         registro.setEditable(false);
         registro.setLineWrap(true);
