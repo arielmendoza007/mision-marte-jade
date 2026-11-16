@@ -16,8 +16,15 @@ from pypdf import PdfReader, PdfWriter
 
 
 RAIZ = Path(__file__).resolve().parent
-pdfmetrics.registerFont(TTFont("ArialProyecto", "C:/Windows/Fonts/arial.ttf"))
-pdfmetrics.registerFont(TTFont("ArialProyectoBold", "C:/Windows/Fonts/arialbd.ttf"))
+if Path("C:/Windows/Fonts/arial.ttf").exists():
+    regular, negrita = "C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"
+else:
+    regular = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    negrita = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+pdfmetrics.registerFont(TTFont("ArialProyecto", regular))
+pdfmetrics.registerFont(TTFont("ArialProyectoBold", negrita))
+pdfmetrics.registerFontFamily("ArialProyecto", normal="ArialProyecto", bold="ArialProyectoBold",
+    italic="ArialProyecto", boldItalic="ArialProyectoBold")
 AZUL = colors.HexColor("#243D52")
 NARANJA = colors.HexColor("#AF6336")
 GRIS = colors.HexColor("#F2F4F4")
@@ -32,22 +39,33 @@ def limpiar(texto):
 
 
 def reporte():
-    normal = ParagraphStyle("cuerpo", fontName="ArialProyecto", fontSize=9.4,
-        leading=13.4, spaceAfter=8, textColor=AZUL)
+    normal = ParagraphStyle("cuerpo", fontName="ArialProyecto", fontSize=11,
+        leading=15, spaceAfter=8, textColor=AZUL)
     titulo = ParagraphStyle("titulo", parent=normal, fontName="ArialProyectoBold",
         fontSize=17, leading=21, spaceAfter=12)
     seccion = ParagraphStyle("seccion", parent=normal, fontName="ArialProyectoBold",
-        fontSize=11.2, leading=14, spaceBefore=12, spaceAfter=6, textColor=NARANJA)
+        fontSize=14, leading=17, spaceBefore=12, spaceAfter=6, textColor=NARANJA)
     items = ParagraphStyle("item", parent=normal, leftIndent=14, firstLineIndent=-8)
     elementos = []
     lineas = (RAIZ / "Reporte-Olympus-Mons.md").read_text(encoding="utf-8").splitlines()
+    import csv
+    with (RAIZ.parent / "ensayo-local.csv").open(encoding="utf-8-sig") as archivo:
+        resultados = list(csv.DictReader(archivo))
+    if len(resultados) != 3:
+        raise ValueError("Ejecuta el ensayo completo antes de imprimir")
     indice = 0
     while indice < len(lineas):
         linea = lineas[indice].strip()
         if not linea:
             indice += 1
             continue
-        if linea.startswith("# "):
+        if linea == "[MEDICIONES]":
+            for fila in resultados:
+                resumen = (f"{fila['escenario']}. {fila['respuestas']}/{fila['propuestas']} respuestas. "
+                    f"Latencia media {fila['latencia_media_us']} µs. Expedición {fila['tiempo_total_ms']} ms. "
+                    f"Muestras entregadas {fila['muestras']}.")
+                elementos.append(Paragraph(resumen, normal))
+        elif linea.startswith("# "):
             elementos.append(Paragraph(limpiar(linea[2:]), titulo))
         elif linea.startswith("## "):
             elementos.append(Paragraph(limpiar(linea[3:]), seccion))
@@ -105,8 +123,8 @@ def base(nombre, titulo, subtitulo):
     c.setFillColor(AZUL)
     c.setFont("ArialProyecto", 8)
     c.drawString(44, 26, "Expedición Olympus Mons | Diagrama para imprimir en horizontal")
-    pagina = {"Interfaz-local.pdf":4, "Arquitectura.pdf":5, "01-casos-de-uso.pdf":6,
-        "02-clases.pdf":7, "03-interaccion.pdf":8}.get(nombre)
+    anexos = ["Interfaz-local.pdf", "Arquitectura.pdf", "01-casos-de-uso.pdf", "02-clases.pdf", "03-interaccion.pdf"]
+    pagina = len(PdfReader(str(RAIZ / "Reporte-Olympus-Mons.pdf")).pages) + anexos.index(nombre) + 1
     c.drawRightString(W - 44, 26, f"Página {pagina}  |  JADE / AUML")
     return c
 
@@ -134,7 +152,7 @@ def linea(c, x1, y1, x2, y2, etiqueta="", dashed=False):
     p.close()
     c.drawPath(p, fill=1, stroke=0)
     if etiqueta:
-        c.setFont("ArialProyecto", 9)
+        c.setFont("ArialProyecto", 11)
         c.drawCentredString((x1+x2)/2, (y1+y2)/2 + 8, etiqueta)
 
 
@@ -144,7 +162,7 @@ def caja(c, x, y, ancho, alto, titulo, detalles=()):
     c.roundRect(x, y, ancho, alto, 7, fill=1, stroke=1)
     texto(c, x + ancho/2, y + alto - 25, titulo, 13, True)
     for i, frase in enumerate(detalles):
-        texto(c, x + ancho/2, y + alto - 47 - 17*i, frase, 9)
+        texto(c, x + ancho/2, y + alto - 47 - 17*i, frase, 11)
 
 
 def casos():
@@ -158,7 +176,7 @@ def casos():
     c.line(83, 362, 106, 340)
     c.roundRect(195, 110, 600, 390, 8)
     texto(c, 495, 478, "Sistema: expedición Olympus Mons", 14, True)
-    casos = [(330, 382, "Elegir escenario e iniciar"), (624, 382, "Consultar estado del Rover"),
+    casos = [(330, 382, "Iniciar expedición"), (624, 382, "Consultar estado del Rover"),
         (330, 259, "Observar ruta y resultados"), (624, 259, "Evaluar lecturas y proponer"),
         (480, 158, "Aceptar, rechazar y ejecutar")]
     for x, y, nombre in casos:
@@ -209,13 +227,13 @@ def interaccion():
         (84,278,"inicia escenario",440),
         (278,470,"REQUEST Exploracion",415),
         (470,278,"QUERY_REF Exploracion",390),
-        (278,470,"INFORM Observacion(Lectura(Sector))",365),
+        (278,470,"INFORM Observacion",365),
         (470,665,"REQUEST Observacion",340),
         (665,470,"PROPOSE Propuesta",315),
         (665,278,"INFORM Propuesta",290),
-        (470,665,"ACCEPT / REJECT_PROPOSAL",265),
-        (470,278,"INFORM Resultado parcial o final",240),
-        (278,665,"INFORM Resultado",215),
+        (470,665,"Acepta o rechaza propuesta",265),
+        (470,278,"INFORM acción en curso",240),
+        (470,278,"INFORM regreso en curso",215),
         (470,278,"INFORM Resultado final al regresar",190),
         (278,665,"INFORM Resultado final",165),
         (665,278,"INFORM Metricas",140),
@@ -227,7 +245,7 @@ def interaccion():
         c.line(a,y,b-8 if b>a else b+8,y)
         linea(c, b-8 if b>a else b+8,y,b,y)
         c.setFillColor(AZUL)
-        c.setFont("ArialProyecto", 8.3)
+        c.setFont("ArialProyecto", 11)
         c.drawCentredString((a+b)/2, y+5, label)
     texto(c, W/2, 69, "Las lecturas y las propuestas se repiten por tramo; tras la muestra o un rechazo, el Rover regresa.", 10)
     c.showPage(); c.save()

@@ -16,13 +16,15 @@ loop Por cada lectura / acción
   C -> E : INFORM Propuesta [M-1]
   alt Batería y seguridad suficientes
     R -> C : ACCEPT_PROPOSAL [M-1]
-    R -> E : INFORM Resultado parcial [M-1]
+    R -> E : INFORM inicio y fin de acción [M-1]
     opt Al terminar la muestra
-      R -> E : INFORM Resultado final: muestra en base
+      R -> E : INFORM regreso en curso
+      R -> E : INFORM muestra en base
     end
   else Sin reserva o tormenta persistente
     R -> C : REJECT_PROPOSAL [M-1]
-    R -> E : INFORM Resultado final: regreso
+    R -> E : INFORM regreso en curso
+    R -> E : INFORM llegada a base
   end
   E -> C : INFORM Resultado [M-1]
 end

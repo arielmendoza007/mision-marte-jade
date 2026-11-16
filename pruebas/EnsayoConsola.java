@@ -27,7 +27,7 @@ public class EnsayoConsola {
     }
 
     private static void esperar(String prefijo) throws Exception {
-        for (int i = 0; i < 220; i++) {
+        for (int i = 0; i < 460; i++) {
             if (!leer(JLabel.class, prefijo).isEmpty()) return;
             Thread.sleep(100);
         }
@@ -73,8 +73,9 @@ public class EnsayoConsola {
             for (int i = 0; i < 3; i++) {
                 final int indice = i;
                 SwingUtilities.invokeAndWait(() -> {
+                    JFrame ventana = (JFrame) SwingUtilities.getWindowAncestor(controles.get(0));
+                    ventana.getJMenuBar().getMenu(0).getItem(indice).doClick();
                     for (Component c : controles) {
-                        if (c instanceof JComboBox) ((JComboBox<?>) c).setSelectedIndex(indice);
                         if (c instanceof JButton && ((JButton) c).getText().equals("Iniciar expedición"))
                             ((JButton) c).doClick();
                     }
@@ -82,13 +83,18 @@ public class EnsayoConsola {
                 String id = "M-" + (i + 1);
                 esperar(id + " | " + finales[i]);
                 esperar("Muestras: " + muestras[i]);
+                int[] bateriaFinal = {11, 30, 1};
+                esperar("Batería: " + bateriaFinal[i] + "/100");
+                esperarRegistro(id + ": EN CURSO REGRESAR");
+                if (i == 2) esperarRegistro("Disponibles 21; necesarias 25");
                 esperarRegistro(id + " | respuestas ");
                 String bitacora = leer(JTextArea.class, "");
                 if (!bitacora.contains(id + ": REGRESAR")) throw new AssertionError("Falta regreso " + id);
                 if (i == 0 && (!bitacora.contains(id + ": ESCANEAR")
                     || !bitacora.contains(id + ": RODEAR") || !bitacora.contains("la confirmación")))
                     throw new AssertionError("Faltan etapas de reconocimiento " + id);
-                String ms = leer(JLabel.class, "Tiempo de respuesta: ").replaceAll("[^0-9]", "");
+                String ms = leer(JLabel.class, "Duración de misión: ").replaceAll("[^0-9]", "");
+                if (Long.parseLong(ms) < 3000) throw new AssertionError("Falta el trayecto de vuelta");
                 tiempoTotal += Long.parseLong(ms);
                 String marcador = id + " | respuestas ";
                 String registroMedida = bitacora.substring(bitacora.lastIndexOf(marcador) + marcador.length())

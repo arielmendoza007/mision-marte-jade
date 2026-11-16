@@ -47,13 +47,13 @@ public class Entorno extends Agent {
                 String id = "M-" + siguienteMision++;
                 inicios.put(id, System.nanoTime());
                 escenarios.put(id, escenario);
-                addBehaviour(new jade.core.behaviours.WakerBehaviour(myAgent, 20000) {
+                addBehaviour(new jade.core.behaviours.WakerBehaviour(myAgent, 45000) {
                     protected void onWake() {
                         if (inicios.remove(id) == null) return;
                         pendientes.remove(id);
                         escenarios.remove(id); esperas.remove(id); desvios.remove(id);
                         ventana.estado(id + " | Sin respuesta. Consulta el rover y comprueba su conexión.");
-                        ventana.agregar(id + " venció después de 20 segundos. Verifica la segunda terminal.");
+                        ventana.agregar(id + " venció después de 45 segundos. Verifica la segunda terminal.");
                         ventana.terminar();
                     }
                 });
@@ -157,7 +157,7 @@ public class Entorno extends Agent {
                     if (!inicios.containsKey(mensaje.getConversationId())) return;
                     Propuesta p = Mensajes.leer(myAgent, mensaje, Propuesta.class);
                     ventana.sensores(p.getLectura());
-                    ventana.regla(p.getMotivo());
+                    ventana.regla(p.getAccion() + " · " + p.getMotivo());
                     ventana.agregar("Coordinador → Entorno INFORM " + p.getMision()
                         + ": " + p.getAccion() + " | " + p.getMotivo());
                 } else {
@@ -178,6 +178,7 @@ public class Entorno extends Agent {
                             : r.getAccion()));
                         ventana.agregar("Rover → Entorno INFORM " + r.getMision()
                             + ": " + r.getAccion() + " | " + r.getDetalle());
+                        if (r.getAccion().startsWith("EN CURSO ")) return;
                         send(Mensajes.crear(myAgent, ACLMessage.INFORM,
                             "coordinador", r.getMision(), r));
                         ventana.agregar("Entorno → Coordinador INFORM " + r.getMision()

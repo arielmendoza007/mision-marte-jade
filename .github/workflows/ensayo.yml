@@ -1,0 +1,36 @@
+name: Ensayo e imprimibles
+on:
+  push:
+    paths: ['src/**', 'pruebas/**', 'documentacion/**', '.github/workflows/ensayo.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  expedicion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Preparar JADE y compilar
+        run: |
+          mkdir -p lib out
+          curl -fLS --retry 2 --max-time 50 https://jade.tilab.com/maven/com/tilab/jade/jade/4.6.0/jade-4.6.0.jar -o lib/jade.jar
+          find src pruebas -name '*.java' > "$RUNNER_TEMP/fuentes"
+          javac -encoding UTF-8 -cp lib/jade.jar -d out @"$RUNNER_TEMP/fuentes"
+          java -cp out:lib/jade.jar marte.PruebaOntologia
+      - name: Ensayar tres escenarios en dos procesos de la misma máquina
+        run: xvfb-run -a -s "-screen 0 1366x768x24" java -cp out:lib/jade.jar EnsayoConsola red
+      - name: Preparar reporte, diagramas y evidencias
+        run: |
+          python -m pip install reportlab pypdf
+          python documentacion/generar_pdf.py
+          mkdir -p "$RUNNER_TEMP/entrega"
+          cp -r src pruebas documentacion *.ps1 README.md lib ensayo-local.csv metricas-local.txt captura-consola-local.png "$RUNNER_TEMP/entrega/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Olympus-Mons
+          path: ${{ runner.temp }}/entrega

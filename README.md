@@ -4,7 +4,7 @@ Proyecto del tercer parcial de Sistemas Multiagentes. Es una **simulación didá
 
 ## Qué se hace en la interfaz
 
-El operador elige **un escenario**, no valores de sensores: ascenso normal, tormenta persistente o batería limitada. Pulsa **Iniciar expedición** una vez. Entorno genera lecturas reproducibles de Falda, Ladera y Caldera; Coordinador aplica las reglas del sistema experto; Rover decide si puede ejecutar cada propuesta y solicita por sí mismo la siguiente lectura. El viaje termina con muestra entregada o regreso preventivo. **Consultar rover** pide su estado actual por ACL.
+El operador pulsa **Iniciar expedición**. En el menú **Ensayos** puede repetir una tormenta persistente o un caso con batería limitada. La cámara frontal representa las acciones que el rover comunica por ACL. Entorno genera lecturas reproducibles de Falda, Ladera y Caldera; Coordinador aplica las reglas del sistema experto; Rover decide si puede ejecutar cada propuesta y solicita por sí mismo la siguiente lectura. El viaje termina con muestra entregada o regreso preventivo. **Consultar rover** pide su estado actual por ACL.
 
 | Escenario | Suceso relevante | Resultado esperado |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ El Coordinador envía en `Metricas` por misión: **tasa de respuesta** = respues
 
 Descomprime el ZIP completo. Abre PowerShell **dentro de esta carpeta `rover-marte`**. Requiere JDK (`java` y `javac`); los scripts también buscan el instalado por la extensión Java de VS Code. El ZIP contiene `lib/jade.jar`.
 
-El repositorio público contiene el código y los diagramas editables; para ejecutar una clonación, copia `jade.jar` del ZIP a `lib/jade.jar` o descarga JADE 4.6.0 desde el sitio oficial y coloca su JAR allí. Los PDF del ZIP son los anexos ya listos para imprimir; `documentacion/generar_pdf.py` permite regenerarlos en Windows con Python, `reportlab` y `pypdf`.
+El repositorio público contiene el código y los diagramas editables; para ejecutar una clonación, copia `jade.jar` del ZIP a `lib/jade.jar` o descarga JADE 4.6.0 desde el sitio oficial y coloca su JAR allí. El paquete Olympus-Mons de Actions incluye el PDF y las mediciones del ensayo automático. Desde un ZIP de código fuente, ejecuta Ensayar-Local.ps1 antes de generar los PDF; `documentacion/generar_pdf.py` permite regenerarlos en Windows con Python, `reportlab` y `pypdf`.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Principal.ps1 -Local -IpLocal 127.0.0.1 -Puerto 0
@@ -80,6 +80,9 @@ El contenedor principal abre la ventana y la GUI de JADE. El Rover **no tiene se
 El entorno de ejecución aislado donde se preparó esta entrega no permite verificar la conexión entre dos máquinas; regístrenla con sus mediciones reales, no con los datos locales del CSV.
 
 ## Documentación y materiales
+
+Para preparar la defensa, abran [Guía de defensa](documentacion/Defensa.md). El PDF combinado se llama `documentacion/Entrega-imprimible.pdf`. Tras editar el recuadro de identificación, la autoevaluación y la evidencia física, regeneren el PDF con `python documentacion/generar_pdf.py`.
+
 
 `documentacion/` contiene los tres diagramas AUML y el reporte para imprimir. El texto impreso requiere completar nombres, autoevaluación y evidencia presencial; comprueben que los diagramas quedan legibles en las hojas. `src/marte/PruebaOntologia.java` verifica extracción de mensajes con instancias anidadas.
 

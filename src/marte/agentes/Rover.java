@@ -105,9 +105,16 @@ public class Rover extends Agent {
                 send(Mensajes.crear(myAgent, tipo, "coordinador", id, p));
                 if (ocupado) return;
                 ocupado = true;
-                addBehaviour(new Ejecutar(myAgent, 650, p, !aceptada,
-                    agotada ? "Tormenta persistente después de dos esperas"
-                        : "Reserva insuficiente para continuar y regresar"));
+                if (aceptada) {
+                    avisarAccion(p, p.getAccion(), "Aceptada por el rover");
+                    addBehaviour(new EjecutarAccion(Rover.this, p));
+                } else {
+                    String motivo = agotada ? "Polvo alto tras dos esperas"
+                        : "Disponibles " + bateria + "; necesarias "
+                            + (costo(p.getAccion()) + COSTO_REGRESO)
+                            + " (" + costo(p.getAccion()) + " de acción + 20 de regreso)";
+                    iniciarRegreso(p, false, p.getAccion() + " rechazada. " + motivo);
+                }
             } catch (RuntimeException e) { System.err.println("[rover] " + e.getMessage()); }
         }
     }
@@ -142,46 +149,50 @@ public class Rover extends Agent {
         ocupado = false;
     }
 
-    /** El retraso simula la acción sin bloquear la recepción ACL. */
-    private class Ejecutar extends WakerBehaviour {
-        private final Propuesta p;
-        private final boolean abortar;
-        private final String motivo;
-        Ejecutar(Agent a, long ms, Propuesta p, boolean abortar, String motivo) {
-            super(a, ms); this.p = p; this.abortar = abortar; this.motivo = motivo;
-        }
-        @Override protected void onWake() {
-            if (abortar) { regresar(p, false, motivo); return; }
-            bateria -= costo(p.getAccion());
-            Resultado r = new Resultado();
-            r.setMision(p.getMision()); r.setLectura(p.getLectura());
-            r.setAccion(p.getAccion()); r.setDetalle(p.getMotivo());
-            r.setFinalizado(false); r.setObjetivo(false);
-            if ("MUESTRA".equals(p.getAccion())) muestras = 1;
-            informarResultado(r);
-            ocupado = false;
-            switch (p.getAccion()) {
-                case "AVANZAR":
-                    tramo++;
-                    esperas = 0;
-                    pedirLectura(false, false, false);
-                    break;
-                case "RODEAR": pedirLectura(false, true, false); break;
-                case "ESPERAR":
-                    esperas++;
-                    pedirLectura(true, false, false);
-                    break;
-                case "ESCANEAR": pedirLectura(false, false, true); break;
-                case "MUESTRA":
-                    ocupado = true;
-                    addBehaviour(new WakerBehaviour(myAgent, 650) {
-                        @Override protected void onWake() {
-                            regresar(p, true, "Borde de la caldera alcanzado; muestra entregada en base");
-                        }
-                    });
-                    break;
-                default: throw new IllegalStateException("Acción no prevista");
+    private void avisarAccion(Propuesta p, String accion, String detalle) {
+        Resultado inicio = new Resultado();
+        inicio.setMision(p.getMision());
+        inicio.setLectura(p.getLectura());
+        inicio.setAccion("EN CURSO " + accion);
+        inicio.setDetalle(detalle);
+        informarResultado(inicio);
+    }
+
+    private void iniciarRegreso(Propuesta p, boolean objetivo, String detalle) {
+        avisarAccion(p, "REGRESAR", detalle);
+        addBehaviour(new WakerBehaviour(this, 3000) {
+            @Override protected void onWake() {
+                regresar(p, objetivo, detalle + ". Llegada a base");
             }
+        });
+    }
+
+    void completarAccion(Propuesta p) {
+        bateria -= costo(p.getAccion());
+        Resultado r = new Resultado();
+        r.setMision(p.getMision()); r.setLectura(p.getLectura());
+        r.setAccion(p.getAccion()); r.setDetalle(p.getMotivo());
+        r.setFinalizado(false); r.setObjetivo(false);
+        if ("MUESTRA".equals(p.getAccion())) muestras = 1;
+        informarResultado(r);
+        ocupado = false;
+        switch (p.getAccion()) {
+            case "AVANZAR":
+                tramo++;
+                esperas = 0;
+                pedirLectura(false, false, false);
+                break;
+            case "RODEAR": pedirLectura(false, true, false); break;
+            case "ESPERAR":
+                esperas++;
+                pedirLectura(true, false, false);
+                break;
+            case "ESCANEAR": pedirLectura(false, false, true); break;
+            case "MUESTRA":
+                ocupado = true;
+                iniciarRegreso(p, true, "Muestra a bordo");
+                break;
+            default: throw new IllegalStateException("Acción no prevista");
         }
     }
 }

@@ -1,3 +1,4 @@
+param([switch]$DosProcesos)
 $ErrorActionPreference = 'Stop'
 $raiz = $PSScriptRoot
 & "$raiz\Compilar.ps1"
@@ -9,6 +10,8 @@ if (-not $java) {
 if (-not $java) { throw 'No se encontró java. Instala un JDK.' }
 Push-Location -LiteralPath $raiz
 try {
-    & $java '-Dfile.encoding=UTF-8' -cp "$raiz\out;$raiz\lib\jade.jar" EnsayoConsola
+    $modo = @()
+    if ($DosProcesos) { $modo += "red" }
+    & $java '-Dfile.encoding=UTF-8' -cp "$raiz\out;$raiz\lib\jade.jar" EnsayoConsola @modo
     if ($LASTEXITCODE -ne 0) { throw 'El ensayo local no terminó correctamente.' }
 } finally { Pop-Location }

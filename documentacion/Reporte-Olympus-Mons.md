@@ -23,7 +23,7 @@ Un rover simulado asciende desde un campamento de la falda hasta el borde de la 
 
 **c) Arquitectura.** Principal: `Entorno` + `Coordinador` + interfaz Swing. Remoto: `Rover` sin ventana propia. Ambos contenedores pertenecen a una plataforma JADE y comparten ontología `MisionMarte`. Ver `Arquitectura.pdf` y la secuencia `03-interaccion.pdf` en esta carpeta.
 
-**d) Mensajes ACL.** Entorno → Rover: `REQUEST Exploracion` para iniciar y consultar estado, `INFORM Observacion` en respuesta a lecturas. Rover → Entorno: `QUERY_REF Exploracion`, `INFORM EstadoRover` y `INFORM Resultado`. Rover → Coordinador: `REQUEST Observacion`, `ACCEPT_PROPOSAL` o `REJECT_PROPOSAL` de una `Propuesta`. Coordinador → Rover: `PROPOSE Propuesta`; Coordinador → Entorno: `INFORM Propuesta` y `INFORM Metricas`; Entorno → Coordinador: `INFORM Resultado`. Todos emplean `conversation-id` M-n cuando corresponda.
+**d) Mensajes ACL.** Entorno → Rover: `REQUEST Exploracion` para iniciar, `REQUEST EstadoRover` para consultar, `INFORM Observacion` en respuesta a lecturas. Rover → Entorno: `QUERY_REF Exploracion`, `INFORM EstadoRover` y `INFORM Resultado`. Rover → Coordinador: `REQUEST Observacion`, `ACCEPT_PROPOSAL` o `REJECT_PROPOSAL` de una `Propuesta`. Coordinador → Rover: `PROPOSE Propuesta`; Coordinador → Entorno: `INFORM Propuesta` y `INFORM Metricas`; Entorno → Coordinador: `INFORM Resultado`. Todos emplean `conversation-id` M-n cuando corresponda.
 
 ## Desarrollo — 2. Diagramas AUML (0.5)
 
@@ -31,7 +31,7 @@ Anexos vectoriales, cada uno en una página legible: `01-casos-de-uso.pdf` (acto
 
 ## Desarrollo — 3. Interfaz gráfica (2)
 
-La consola Swing permite elegir entre normal, tormenta persistente y batería limitada; iniciar, consultar al Rover y observar estado, lecturas, recursos, regla, tiempo y bitácora. El perfil Java2D muestra base, falda, ladera y caldera. `A` indica avance, `D` desvío, `T` espera, `E` escaneo y `M` muestra; el dibujo se actualiza tras mensajes reales recibidos por Entorno. Un `Timer` mueve visualmente el icono entre estaciones; **la animación no toma decisiones**. Sólo se habilita otro inicio cuando finaliza la expedición o vence su plazo.
+La pantalla principal ofrece iniciar la expedición y consultar el Rover. El menú Ensayos permite repetir las tres condiciones iniciales. La cámara frontal Swing representa el bloque de lava, la visibilidad con polvo y el escaneo. Un aviso de acción en curso inicia el dibujo. El destino y la entrega se confirman al recibir el resultado del Rover. El panel conserva la última lectura, la batería, la decisión y la duración total.
 
 ## Desarrollo — 4. Implementación de agentes (0.5)
 
@@ -43,7 +43,7 @@ Se usan **seis performativas**: `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `AC
 
 ## Desarrollo — 6. Comportamientos (0.5)
 
-`CyclicBehaviour`: escucha permanente en los tres agentes. `SimpleBehaviour`: `Coordinador.Evaluar` procesa exactamente una lectura y declara `done()`. `OneShotBehaviour`: `Entorno` inicia y consulta; `Rover.Presentarse` informa su estado inicial. `TickerBehaviour`: `Rover.Telemetria` informa estado cada cinco segundos. `WakerBehaviour`: `Rover.Ejecutar` espera 650 ms por acción; un segundo `WakerBehaviour` representa el regreso tras obtener la muestra; Entorno vence solicitudes sin respuesta en 20 s. La espera no bloquea el buzón del agente.
+`CyclicBehaviour`: escucha permanente en los tres agentes. `SimpleBehaviour`: `Coordinador.Evaluar` procesa exactamente una lectura y declara `done()`. `OneShotBehaviour`: `Entorno` inicia y consulta; `Rover.Presentarse` informa su estado inicial. `TickerBehaviour`: `Rover.Telemetria` informa estado cada cinco segundos. `WakerBehaviour`: `EjecutarAccion` completa la acción a los 2200 ms. El regreso dispone de 3000 ms y Entorno controla un plazo de 45 s. La espera no bloquea el buzón del agente.
 
 ## Desarrollo — 7. Ontología e instancias (2)
 
@@ -53,7 +53,11 @@ Se usan **seis performativas**: `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `AC
 
 **a y b) Dos equipos y comunicación efectiva.** Principal ejecuta Entorno y Coordinador; equipo remoto ejecuta Rover. `Iniciar-Principal.ps1 -Puerto 1099 -IpLocal IP_PRINCIPAL -JadeGui` y `Iniciar-Rover.ps1 -HostPrincipal IP_PRINCIPAL -Puerto 1099 -IpLocal IP_ROVER -PuertoLocal 1100`. En red común o Hamachi se usan IP reales o virtuales, jamás `127.0.0.1`. Verificar `Test-NetConnection`, Rover en RMA, `Consultar rover`, mismo M-n en ambos logs, regreso y tiempos. **Pendiente: insertar aquí capturas y resultados realmente obtenidos en dos computadoras.**
 
-**c) Dos medidas de evaluación aplicadas.** El artículo de Soza Pollman [2] estudia habilidad social, autonomía y proactividad; adaptamos dos indicadores observables al intercambio de este proyecto sin atribuirle nuestras fórmulas: (1) tasa de respuesta a propuestas = respuestas (`ACCEPT` + `REJECT`) / propuestas × 100; (2) latencia media de respuesta = suma de tiempos entre `PROPOSE` y respuesta / número de respuestas, en microsegundos. `Coordinador` registra ambas por M-n y envía `Metricas` por ACL al Entorno. Además Entorno mide tiempo total hasta regreso, y `ensayo-local.csv` registra éxito del objetivo por escenario. Ensayo local del 16/11/2026: NORMAL 6/6 respuestas, 1098 µs de latencia media, 4585 ms hasta volver y una muestra; TORMENTA 6/6, 902 µs, 3942 ms y cero muestras; BATERIA 5/5, 1715 µs, 3289 ms y cero muestras. Tiempo medio hasta regreso: 3938 ms; tres finales previstos de tres. **Son resultados locales, no distribuidos** y pueden variar al repetir la prueba. Añadir los números medidos en la prueba presencial sin confundirlos con éstos.
+**c) Dos medidas de evaluación aplicadas.** El artículo de Soza Pollman [2] estudia habilidad social, autonomía y proactividad; adaptamos dos indicadores observables al intercambio de este proyecto sin atribuirle nuestras fórmulas: (1) tasa de respuesta a propuestas = respuestas (`ACCEPT` + `REJECT`) / propuestas × 100; (2) latencia media de respuesta = suma de tiempos entre `PROPOSE` y respuesta / número de respuestas, en microsegundos. `Coordinador` registra ambas por M-n y envía `Metricas` por ACL al Entorno. Además Entorno mide tiempo total hasta regreso, y `ensayo-local.csv` registra éxito del objetivo por escenario. Los valores siguientes proceden del CSV generado al ensayar la versión que se imprime en una máquina. La tasa se obtiene dividiendo los dos conteos. Un rechazo informado cuenta como respuesta.
+
+[MEDICIONES]
+
+Registrar por separado los resultados entre laptops.
 
 **d) Tipo de agente de clase.** El Coordinador es un agente basado en reglas de **sistema experto**: una cadena ordenada R1–R5 asigna acciones según polvo, obstáculo, posición, señal y confirmación. La política energética del Rover puede rechazar esas acciones; esa negociación demuestra que el Coordinador no controla completamente al Rover.
 

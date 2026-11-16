@@ -33,14 +33,14 @@ public class ConsolaMision extends JFrame {
     private static final Color SUAVE = new Color(171, 186, 198);
     private static final Color NARANJA = new Color(255, 176, 86);
 
-    private final JComboBox<String> sector = new JComboBox<>(new String[] {
-        "Ascenso normal", "Tormenta persistente", "Batería limitada" });
+    private final javax.swing.JMenu ensayos = new javax.swing.JMenu("Ensayos");
+    private String escenario = "NORMAL";
     private final JLabel sensores = texto("Sin lectura todavía", 13, BLANCO);
     private final JLabel estado = texto("Esperando misión", 13, BLANCO);
     private final JLabel bateria = texto("Batería: esperando telemetría", 14, BLANCO);
     private final JLabel muestras = texto("Muestras: 0", 14, BLANCO);
     private final JLabel regla = texto("Regla: -", 12, SUAVE);
-    private final JLabel tiempo = texto("Tiempo de respuesta: -", 12, SUAVE);
+    private final JLabel tiempo = texto("Duración de misión: -", 12, SUAVE);
     private final JLabel etapa = texto("Etapa: esperando lectura", 13, NARANJA);
     private final JProgressBar energia = new JProgressBar(0, 100);
     private final JTextArea registro = new JTextArea(7, 60);
@@ -60,14 +60,24 @@ public class ConsolaMision extends JFrame {
         JPanel titulo = new JPanel(new GridLayout(0, 1));
         titulo.setOpaque(false);
         titulo.add(texto("OLYMPUS MONS", 23, BLANCO));
-        titulo.add(texto("Expedición autónoma al borde de la caldera  /  JADE", 12, SUAVE));
+        titulo.add(texto("Traer a base una muestra del borde de la caldera", 12, SUAVE));
         cabecera.add(titulo, BorderLayout.WEST);
 
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 9, 8));
         controles.setOpaque(false);
-        sector.setPreferredSize(new Dimension(185, 34));
-        sector.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        controles.add(sector);
+        javax.swing.JMenuBar barra = new javax.swing.JMenuBar();
+        javax.swing.ButtonGroup grupo = new javax.swing.ButtonGroup();
+        String[] nombres = {"Ascenso normal", "Tormenta persistente", "Batería limitada"};
+        String[] claves = {"NORMAL", "TORMENTA", "BATERIA"};
+        for (int i = 0; i < nombres.length; i++) {
+            String clave = claves[i];
+            javax.swing.JRadioButtonMenuItem opcion = new javax.swing.JRadioButtonMenuItem(nombres[i], i == 0);
+            opcion.addActionListener(e -> escenario = clave);
+            grupo.add(opcion);
+            ensayos.add(opcion);
+        }
+        barra.add(ensayos);
+        setJMenuBar(barra);
         JButton consultar = boton("Consultar rover", TARJETA, BLANCO);
         controles.add(consultar);
         controles.add(iniciar);
@@ -91,11 +101,11 @@ public class ConsolaMision extends JFrame {
         lateral.add(estado);
         lateral.add(Box.createVerticalStrut(12));
         lateral.add(etapa);
-        lateral.add(Box.createVerticalStrut(24));
-        lateral.add(texto("LECTURA", 11, NARANJA));
+        lateral.add(Box.createVerticalStrut(12));
+        lateral.add(texto("ÚLTIMA LECTURA", 11, NARANJA));
         lateral.add(Box.createVerticalStrut(8));
         lateral.add(sensores);
-        lateral.add(Box.createVerticalStrut(24));
+        lateral.add(Box.createVerticalStrut(12));
         lateral.add(texto("RECURSOS", 11, NARANJA));
         lateral.add(Box.createVerticalStrut(9));
         lateral.add(bateria);
@@ -109,7 +119,7 @@ public class ConsolaMision extends JFrame {
         lateral.add(Box.createVerticalStrut(9));
         lateral.add(muestras);
         lateral.add(Box.createVerticalStrut(5));
-        lateral.add(texto("Coste previsto de regreso: 20 unidades", 11, SUAVE));
+        lateral.add(texto("El regreso consume 20 unidades", 11, SUAVE));
         lateral.add(Box.createVerticalGlue());
         lateral.add(regla);
         lateral.add(Box.createVerticalStrut(8));
@@ -126,38 +136,37 @@ public class ConsolaMision extends JFrame {
         registro.setEditable(false);
         registro.setLineWrap(true);
         registro.setWrapStyleWord(true);
-        registro.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
+        registro.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
         registro.setBackground(new Color(23, 31, 42));
         registro.setForeground(new Color(220, 231, 232));
         registro.setCaretColor(BLANCO);
         JScrollPane desplazamiento = new JScrollPane(registro);
         desplazamiento.setBorder(BorderFactory.createEmptyBorder());
         bitacora.add(desplazamiento, BorderLayout.CENTER);
-        bitacora.setPreferredSize(new Dimension(0, 170));
+        bitacora.setPreferredSize(new Dimension(0, 116));
         raiz.add(bitacora, BorderLayout.SOUTH);
 
         iniciar.addActionListener(e -> {
             iniciar.setEnabled(false);
-            sector.setEnabled(false);
+            ensayos.setEnabled(false);
             sensores.setText("Esperando lectura de la falda");
             regla.setText("Regla: pendiente");
             etapa.setText("Etapa: solicitando lectura inicial");
-            tiempo.setText("Tiempo de respuesta: -");
-            mapa.seleccionarSector((String) sector.getSelectedItem());
-            String[] escenarios = {"NORMAL", "TORMENTA", "BATERIA"};
-            alIniciar.accept(escenarios[sector.getSelectedIndex()]);
+            tiempo.setText("Duración de misión: -");
+            mapa.seleccionarSector(escenario);
+            alIniciar.accept(escenario);
         });
         consultar.addActionListener(e -> alConsultar.run());
 
         Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(Math.min(1120, pantalla.width - 60), Math.min(760, pantalla.height - 70));
-        setMinimumSize(new Dimension(900, 610));
+        setMinimumSize(new Dimension(Math.min(820, pantalla.width - 30), Math.min(555, pantalla.height - 65)));
         setLocationRelativeTo(null);
     }
 
     private static JLabel texto(String contenido, int tamano, Color color) {
         JLabel l = new JLabel(contenido);
-        l.setFont(new Font("SansSerif", tamano >= 20 ? Font.BOLD : Font.PLAIN, tamano));
+        l.setFont(new Font("SansSerif", tamano >= 20 ? Font.BOLD : Font.PLAIN, Math.max(14, tamano)));
         l.setForeground(color);
         l.setAlignmentX(LEFT_ALIGNMENT);
         return l;
@@ -187,10 +196,10 @@ public class ConsolaMision extends JFrame {
     }
     public void estado(String valor) { enUi(() -> estado.setText(valor)); }
     public void regla(String valor) {
-        enUi(() -> regla.setText("<html><b>Regla:</b> " + valor + "</html>"));
+        enUi(() -> regla.setText("<html><b>Propuesta del coordinador</b><br>" + valor + "</html>"));
     }
     public void tiempo(long milis) {
-        enUi(() -> tiempo.setText("Tiempo de respuesta: " + milis + " ms"));
+        enUi(() -> tiempo.setText("Duración de misión: " + milis + " ms"));
     }
     public void telemetria(int bateriaActual, int total) {
         enUi(() -> {
@@ -202,13 +211,16 @@ public class ConsolaMision extends JFrame {
     public void resultado(Resultado resultado) {
         enUi(() -> {
             mapa.mostrarResultado(resultado);
+            if (resultado.getAccion().equals("EN CURSO REGRESAR") || resultado.getFinalizado()) {
+                regla.setText("<html><b>Decisión del rover</b><br>" + resultado.getDetalle() + "</html>");
+            }
             etapa.setText(resultado.getFinalizado()
                 ? (resultado.getObjetivo() ? "Etapa: muestra entregada en base"
-                    : "Etapa: regreso preventivo")
+                    : "Etapa: en base, sin muestra")
                 : "Etapa: " + resultado.getAccion().toLowerCase());
         });
     }
-    public void terminar() { enUi(() -> { iniciar.setEnabled(true); sector.setEnabled(true); }); }
+    public void terminar() { enUi(() -> { iniciar.setEnabled(true); ensayos.setEnabled(true); }); }
     public void agregar(String valor) {
         enUi(() -> {
             registro.append(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
