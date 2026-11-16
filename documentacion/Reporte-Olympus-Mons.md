@@ -43,7 +43,7 @@ Se usan **seis performativas**: `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `AC
 
 ## Desarrollo — 6. Comportamientos (0.5)
 
-`CyclicBehaviour`: escucha permanente en los tres agentes. `SimpleBehaviour`: `Coordinador.Evaluar` procesa exactamente una lectura y declara `done()`. `OneShotBehaviour`: `Entorno` inicia y consulta; `Rover.Presentarse` informa su estado inicial. `TickerBehaviour`: `Rover.Telemetria` informa estado cada cinco segundos. `WakerBehaviour`: `EjecutarAccion` completa la acción a los 2200 ms. El regreso dispone de 3000 ms y Entorno controla un plazo de 45 s. La espera no bloquea el buzón del agente.
+`CyclicBehaviour`: escucha permanente en los tres agentes. `SimpleBehaviour`: `Coordinador.Evaluar` procesa exactamente una lectura y declara `done()`. `OneShotBehaviour`: `Entorno` inicia y consulta; `Rover.Presentarse` informa su estado inicial. `TickerBehaviour`: `Rover.Telemetria` informa estado cada cinco segundos. `WakerBehaviour`: `EjecutarAccion` completa la acción a los 3200 ms. El regreso dispone de 4200 ms y Entorno controla un plazo de 45 s. La espera no bloquea el buzón del agente.
 
 ## Desarrollo — 7. Ontología e instancias (2)
 

@@ -9,7 +9,7 @@ class EjecutarAccion extends WakerBehaviour {
     private final Propuesta propuesta;
 
     EjecutarAccion(Rover rover, Propuesta propuesta) {
-        super(rover, 2200);
+        super(rover, 3200);
         this.rover = rover;
         this.propuesta = propuesta;
     }

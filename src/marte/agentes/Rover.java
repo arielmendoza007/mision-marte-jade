@@ -160,7 +160,7 @@ public class Rover extends Agent {
 
     private void iniciarRegreso(Propuesta p, boolean objetivo, String detalle) {
         avisarAccion(p, "REGRESAR", detalle);
-        addBehaviour(new WakerBehaviour(this, 3000) {
+        addBehaviour(new WakerBehaviour(this, 4200) {
             @Override protected void onWake() {
                 regresar(p, objetivo, detalle + ". Llegada a base");
             }

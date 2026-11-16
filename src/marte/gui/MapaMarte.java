@@ -63,7 +63,7 @@ public class MapaMarte extends JPanel {
         super.paintComponent(grafico);
         Graphics2D g = (Graphics2D) grafico.create();
         double progreso = Math.min(1, (System.currentTimeMillis() - inicio)
-            / ("REGRESAR".equals(accion) ? 3000.0 : 2200.0));
+            / ("REGRESAR".equals(accion) ? 4200.0 : 3200.0));
         if (progreso >= 1) cuadros.stop();
         boolean marcha = "AVANZAR".equals(accion) || "RODEAR".equals(accion) || "REGRESAR".equals(accion);
         int lateral = "RODEAR".equals(accion) ? (int)(115 * Math.sin(Math.PI * progreso)) : 0;
