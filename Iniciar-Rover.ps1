@@ -7,7 +7,7 @@ if (-not $java) {
     $java = Get-ChildItem -Path "$env:USERPROFILE\.vscode\extensions" -Recurse -Filter java.exe -ErrorAction SilentlyContinue |
         Select-Object -First 1 -ExpandProperty FullName
 }
-if (-not $java) { throw 'No se encontr� java.' }
+if (-not $java) { throw 'No se encontró java.' }
 $opciones = @('-container', '-host', $HostPrincipal, '-port', "$Puerto", '-local-port', "$PuertoLocal")
 if ($IpLocal) { $opciones += @('-local-host', $IpLocal) }
 Push-Location -LiteralPath $raiz

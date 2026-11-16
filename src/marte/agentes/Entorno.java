@@ -13,17 +13,23 @@ import marte.gui.ConsolaMision;
 import marte.modelo.EstadoRover;
 import marte.modelo.Lectura;
 import marte.modelo.Mensajes;
+import marte.modelo.Metricas;
 import marte.modelo.OntologiaMarte;
 import marte.modelo.Propuesta;
 import marte.modelo.Resultado;
+import marte.modelo.Sector;
 import marte.modelo.Exploracion;
 import marte.modelo.Observacion;
 
-/** Intermediario entre el operador y los agentes aut�nomos. */
+/** Intermediario entre el operador y los agentes autónomos. */
 public class Entorno extends Agent {
     private volatile ConsolaMision ventana;
     private int siguienteMision = 1;
     private final Map<String, Long> inicios = new HashMap<>();
+    private final Map<String, Lectura> pendientes = new HashMap<>();
+    private final Map<String, String> escenarios = new HashMap<>();
+    private final Map<String, Integer> esperas = new HashMap<>();
+    private final Map<String, Boolean> desvios = new HashMap<>();
 
     @Override protected void setup() {
         OntologiaMarte.registrar(this);
@@ -32,25 +38,30 @@ public class Entorno extends Agent {
             ventana = new ConsolaMision(this::iniciar, this::consultarRover);
             ventana.setVisible(true);
         }); } catch (Exception ex) { throw new IllegalStateException("No se pudo abrir la consola", ex); }
-        System.out.println("[entorno] Consola de misi�n iniciada");
+        System.out.println("[entorno] Consola de misión iniciada");
     }
 
-    private void iniciar(String sector) {
+    private void iniciar(String escenario) {
         addBehaviour(new OneShotBehaviour() {
             @Override public void action() {
                 String id = "M-" + siguienteMision++;
                 inicios.put(id, System.nanoTime());
-                addBehaviour(new jade.core.behaviours.WakerBehaviour(myAgent, 8000) {
+                escenarios.put(id, escenario);
+                addBehaviour(new jade.core.behaviours.WakerBehaviour(myAgent, 20000) {
                     protected void onWake() {
                         if (inicios.remove(id) == null) return;
-                        ventana.estado(id + " | Sin respuesta. Consulta el rover y comprueba su conexi�n.");
-                        ventana.agregar(id + " venci� despu�s de 8 segundos. Verifica la segunda terminal.");
+                        pendientes.remove(id);
+                        escenarios.remove(id); esperas.remove(id); desvios.remove(id);
+                        ventana.estado(id + " | Sin respuesta. Consulta el rover y comprueba su conexión.");
+                        ventana.agregar(id + " venció después de 20 segundos. Verifica la segunda terminal.");
                         ventana.terminar();
                     }
                 });
-                send(Mensajes.crear(myAgent, ACLMessage.REQUEST, "rover", id, new Exploracion(sector)));
-                ventana.estado(id + " | Explorando " + sector);
-                ventana.agregar("Entorno  Rover REQUEST " + id + " explorar " + sector);
+                Exploracion orden = new Exploracion("Falda");
+                orden.setEscenario(escenario);
+                send(Mensajes.crear(myAgent, ACLMessage.REQUEST, "rover", id, orden));
+                ventana.estado(id + " | Ascenso iniciado");
+                ventana.agregar("Entorno → Rover REQUEST " + id + " | Olympus Mons: " + escenario);
             }
         });
     }
@@ -61,33 +72,53 @@ public class Entorno extends Agent {
                 EstadoRover consulta = new EstadoRover();
                 consulta.setMision("consulta");
                 send(Mensajes.crear(myAgent, ACLMessage.REQUEST, "rover", "consulta", consulta));
-                ventana.agregar("Entorno  Rover REQUEST estado");
+                ventana.agregar("Entorno → Rover REQUEST estado");
             }
         });
     }
 
-    private final Map<String,Integer> visitas = new HashMap<>();
-
-    // Tres puntos por sector, en orden c�clico para poder repetir la demostraci�n.
+    // Un recorrido corto y reproducible por el flanco hasta el borde de la caldera.
     private Lectura medir(Exploracion orden, String id) {
         String nombre = orden.getSector().getNombre();
-        int punto = (visitas.merge(nombre, 1, Integer::sum) - 1) % 3;
-        int[] polvo, mineral;
-        boolean obstaculo = false;
-        switch (nombre.charAt(0)) {
-            case 'A':
-                polvo = new int[]{15, 19, 22}; mineral = new int[]{30, 70, 42};
-                obstaculo = punto == 1; break;
-            case 'B':
-                polvo = new int[]{20, 24, 18}; mineral = new int[]{85, 78, 91}; break;
-            case 'C':
-                polvo = new int[]{85, 72, 55}; mineral = new int[]{90, 83, 77}; break;
-            default: throw new IllegalArgumentException("Sector desconocido: " + nombre);
+        if (orden.getEspera()) esperas.merge(id, 1, Integer::sum);
+        if (orden.getDesvio()) desvios.put(id, true);
+        if (orden.getConfirmacion()) {
+            Lectura original = pendientes.remove(id);
+            if (original == null || !original.getSector().getNombre().equals(nombre)) {
+                throw new IllegalArgumentException("No hay lectura pendiente para confirmar en " + id);
+            }
+            Lectura confirmada = new Lectura();
+            Sector sector = new Sector(nombre);
+            sector.setPunto(original.getSector().getPunto());
+            confirmada.setMision(id);
+            confirmada.setSector(sector);
+            confirmada.setPolvo(original.getPolvo());
+            confirmada.setMineral(Math.max(0, original.getMineral() - 3));
+            confirmada.setObstaculo(original.getObstaculo());
+            confirmada.setConfirmada(true);
+            return confirmada;
+        }
+        int punto, polvo, mineral;
+        boolean obstaculo;
+        switch (nombre) {
+            case "Falda":
+                punto = 1; polvo = 20; mineral = 25; obstaculo = false; break;
+            case "Ladera":
+                punto = 2; polvo = 27; mineral = 42;
+                obstaculo = !desvios.getOrDefault(id, false); break;
+            case "Caldera":
+                punto = 3; mineral = 85; obstaculo = false;
+                polvo = "TORMENTA".equals(escenarios.get(id)) ? 85
+                    : esperas.getOrDefault(id, 0) == 0 ? 85 : 55;
+                break;
+            default: throw new IllegalArgumentException("Tramo desconocido: " + nombre);
         }
         Lectura l = new Lectura();
-        orden.getSector().setPunto(punto + 1);
+        orden.getSector().setPunto(punto);
         l.setSector(orden.getSector()); l.setMision(id);
-        l.setPolvo(polvo[punto]); l.setMineral(mineral[punto]); l.setObstaculo(obstaculo);
+        l.setPolvo(polvo); l.setMineral(mineral); l.setObstaculo(obstaculo);
+        l.setConfirmada(false);
+        pendientes.put(id, l);
         return l;
     }
 
@@ -100,7 +131,9 @@ public class Entorno extends Agent {
             MessageTemplate.MatchSender(new AID("rover", AID.ISLOCALNAME)));
 
         @Override public void action() {
-            ACLMessage mensaje = myAgent.receive(MessageTemplate.or(coordinador, rover));
+            ACLMessage mensaje = myAgent.receive(MessageTemplate.and(
+                MessageTemplate.MatchOntology(OntologiaMarte.NOMBRE),
+                MessageTemplate.or(coordinador, rover)));
             if (mensaje == null) { block(); return; }
             try {
                 if (mensaje.getPerformative() == ACLMessage.QUERY_REF) {
@@ -108,33 +141,54 @@ public class Entorno extends Agent {
                     if (!inicios.containsKey(id)) return;
                     Lectura lectura = medir(Mensajes.leer(myAgent, mensaje, Exploracion.class), id);
                     send(Mensajes.crear(myAgent, ACLMessage.INFORM, "rover", id, new Observacion(lectura)));
-                    ventana.agregar("Rover  Entorno QUERY_REF " + id + " | Entorno devuelve la lectura");
+                    ventana.agregar("Rover → Entorno QUERY_REF " + id + " | Entorno devuelve "
+                        + (lectura.getConfirmada() ? "la confirmación" : "la lectura inicial"));
                     return;
                 }
                 if ("coordinador".equals(mensaje.getSender().getLocalName())) {
+                    Object contenido = myAgent.getContentManager().extractContent(mensaje);
+                    if (contenido instanceof Metricas) {
+                        Metricas m = (Metricas) contenido;
+                        ventana.agregar("Coordinador -> Entorno INFORM " + m.getMision()
+                            + " | respuestas " + m.getRespuestas() + "/" + m.getPropuestas()
+                            + ", promedio " + m.getPromedioUs() + " µs");
+                        return;
+                    }
                     if (!inicios.containsKey(mensaje.getConversationId())) return;
                     Propuesta p = Mensajes.leer(myAgent, mensaje, Propuesta.class);
                     ventana.sensores(p.getLectura());
                     ventana.regla(p.getMotivo());
-                    ventana.agregar("Coordinador  Entorno INFORM " + p.getMision()
+                    ventana.agregar("Coordinador → Entorno INFORM " + p.getMision()
                         + ": " + p.getAccion() + " | " + p.getMotivo());
                 } else {
                     Object contenido = myAgent.getContentManager().extractContent(mensaje);
                     if (contenido instanceof EstadoRover) {
                         EstadoRover e = (EstadoRover) contenido;
                         ventana.telemetria(e.getBateria(), e.getMuestras());
-                        if ("recarga".equals(e.getMision())) ventana.agregar("Rover en base. Recarga completada: 80 unidades.");
                         if ("consulta".equals(e.getMision())) {
-                            ventana.agregar("Rover  Entorno INFORM bater�a=" + e.getBateria());
+                            ventana.agregar("Rover → Entorno INFORM batería=" + e.getBateria());
                         }
                     } else if (contenido instanceof Resultado) {
                         Resultado r = (Resultado) contenido;
                         if (!inicios.containsKey(mensaje.getConversationId())) return;
                         ventana.telemetria(r.getBateria(), r.getMuestras());
-                        ventana.estado(r.getMision() + " | " + r.getAccion());
-                        ventana.agregar("Rover  Entorno INFORM " + r.getMision()
+                        ventana.resultado(r);
+                        ventana.estado(r.getMision() + " | " + (r.getFinalizado()
+                            ? (r.getObjetivo() ? "OBJETIVO CUMPLIDO" : "REGRESO PREVENTIVO")
+                            : r.getAccion()));
+                        ventana.agregar("Rover → Entorno INFORM " + r.getMision()
                             + ": " + r.getAccion() + " | " + r.getDetalle());
+                        send(Mensajes.crear(myAgent, ACLMessage.INFORM,
+                            "coordinador", r.getMision(), r));
+                        ventana.agregar("Entorno → Coordinador INFORM " + r.getMision()
+                            + " | resultado " + (r.getFinalizado() ? "final" : "parcial"));
+                        if (!r.getFinalizado()) {
+                            ventana.estado(r.getMision() + " | " + r.getAccion() + " → siguiente etapa");
+                            return;
+                        }
                         Long inicio = inicios.remove(r.getMision());
+                        pendientes.remove(r.getMision());
+                        escenarios.remove(r.getMision()); esperas.remove(r.getMision()); desvios.remove(r.getMision());
                         if (inicio != null) ventana.tiempo((System.nanoTime() - inicio) / 1_000_000);
                         ventana.terminar();
                     }

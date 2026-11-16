@@ -2,7 +2,7 @@ package marte.modelo;
 
 import jade.content.Concept;
 
-/** Un lugar de la misi�n; viaja dentro de Lectura. */
+/** Un lugar de la misión; viaja dentro de Lectura. */
 public class Sector implements Concept {
     private String nombre;
     private int punto;

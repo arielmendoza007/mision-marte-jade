@@ -9,7 +9,7 @@ import marte.modelo.Propuesta;
 import marte.modelo.Resultado;
 import marte.modelo.Sector;
 
-/** Prueba corta: el receptor recupera objetos anidados despu�s de codificarlos. */
+/** Prueba corta: el receptor recupera objetos anidados después de codificarlos. */
 public class PruebaOntologia {
     public static void main(String[] args) throws Exception {
         ContentManager gestor = new ContentManager();
@@ -17,7 +17,7 @@ public class PruebaOntologia {
         gestor.registerOntology(OntologiaMarte.getInstance());
         Lectura lectura = new Lectura();
         lectura.setMision("M-prueba");
-        lectura.setSector(new Sector("B - Dep�sito"));
+        lectura.setSector(new Sector("Caldera"));
         lectura.setPolvo(20);
         lectura.setMineral(85);
         Propuesta propuesta = new Propuesta();
@@ -46,7 +46,7 @@ public class PruebaOntologia {
             if (recibido instanceof Propuesta) recuperada = (Propuesta) recibido;
             System.out.println("OK " + recibido.getClass().getSimpleName());
         }
-        if (!"B - Dep�sito".equals(recuperada.getLectura().getSector().getNombre())) {
+        if (!"Caldera".equals(recuperada.getLectura().getSector().getNombre())) {
             throw new AssertionError("Sector anidado incorrecto");
         }
     }

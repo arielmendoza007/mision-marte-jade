@@ -1,0 +1,23 @@
+@startuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontSize 15
+left to right direction
+node "Laptop principal / JADE Main" {
+  agent "Entorno + Swing" as E
+  agent "Coordinador" as C
+}
+node "Laptop Rover / contenedor" {
+  agent "Rover" as R
+}
+E --> C : INFORM Resultado
+C --> E : INFORM Propuesta / Metricas
+C --> R : PROPOSE
+R --> C : REQUEST / ACCEPT / REJECT
+E --> R : REQUEST / INFORM lectura
+R --> E : QUERY_REF / INFORM resultado
+note bottom
+  Ambos equipos comparten OntologiaMarte y SLCodec.
+  Una sola plataforma JADE; IP de red real o Hamachi.
+end note
+@enduml

@@ -3,4 +3,7 @@ out/
 ensayo-local.csv
 Reporte-de-trabajo.pdf
 APDescription.txt
-pruebas/
+lib/jade.jar
+captura-consola-local.png
+metricas-local.txt
+documentacion/*.pdf

@@ -2,7 +2,7 @@ package marte.modelo;
 
 import jade.content.Predicate;
 
-/** Decisi�n del coordinador, pendiente de aceptaci�n por el rover. */
+/** Decisión del coordinador, pendiente de aceptación por el rover. */
 public class Propuesta implements Predicate {
     private String mision;
     private String accion;

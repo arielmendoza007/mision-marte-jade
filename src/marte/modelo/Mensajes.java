@@ -5,7 +5,7 @@ import jade.core.Agent;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
-/** Un solo lugar para construir y leer mensajes de la ontolog�a. */
+/** Un solo lugar para construir y leer mensajes de la ontología. */
 public final class Mensajes {
     private Mensajes() { }
 
@@ -28,7 +28,7 @@ public final class Mensajes {
         try {
             return tipo.cast(destino.getContentManager().extractContent(mensaje));
         } catch (Exception e) {
-            throw new IllegalArgumentException("Contenido inv�lido de " + mensaje.getSender(), e);
+            throw new IllegalArgumentException("Contenido inválido de " + mensaje.getSender(), e);
         }
     }
 }

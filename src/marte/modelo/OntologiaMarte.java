@@ -6,7 +6,7 @@ import jade.content.onto.BeanOntology;
 import jade.content.onto.BeanOntologyException;
 import jade.core.Agent;
 
-/** Esquema com�n que registran los tres agentes antes de hablar. */
+/** Esquema común que registran los tres agentes antes de hablar. */
 public final class OntologiaMarte extends BeanOntology {
     public static final String NOMBRE = "MisionMarte";
     public static final String LENGUAJE = "fipa-sl";
@@ -20,8 +20,9 @@ public final class OntologiaMarte extends BeanOntology {
             add(Propuesta.class);
             add(Resultado.class);
             add(EstadoRover.class);
+            add(Metricas.class);
         } catch (BeanOntologyException e) {
-            throw new IllegalStateException("No se pudo crear la ontolog�a", e);
+            throw new IllegalStateException("No se pudo crear la ontología", e);
         }
     }
 

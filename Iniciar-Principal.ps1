@@ -6,7 +6,7 @@ if (-not $java) {
     $java = Get-ChildItem -Path "$env:USERPROFILE\.vscode\extensions" -Recurse -Filter java.exe -ErrorAction SilentlyContinue |
         Select-Object -First 1 -ExpandProperty FullName
 }
-if (-not $java) { throw 'No se encontr� java.' }
+if (-not $java) { throw 'No se encontró java.' }
 $opciones = @($(if ($JadeGui) { '-gui' } else { '-nomtp' }), '-port', "$Puerto")
 if ($IpLocal) { $opciones += @('-local-host', $IpLocal) }
 $agentes = 'entorno:marte.agentes.Entorno;coordinador:marte.agentes.Coordinador'

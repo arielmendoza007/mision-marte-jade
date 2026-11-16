@@ -1,0 +1,37 @@
+@startuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontSize 14
+left to right direction
+class Entorno <<Agent>> {
+  - inicios : Map
+  - escenarios : Map
+  - medir(Exploracion, String) : Lectura
+  - iniciar(String)
+}
+class Coordinador <<Agent>> {
+  - propuestas : Map
+  - respuestas : Map
+  + Escuchar.action()
+  + Evaluar.action()
+}
+class Rover <<Agent>> {
+  - bateria : int
+  - esperas : int
+  - tramo : int
+  - pedirLectura(boolean, boolean, boolean)
+  - regresar(Propuesta, boolean, String)
+}
+class Observacion <<Predicate>>
+class Propuesta <<Predicate>>
+class Resultado <<Predicate>>
+class Lectura <<Concept>>
+class Sector <<Concept>>
+Entorno --> Coordinador : INFORM resultado
+Coordinador --> Rover : PROPOSE
+Rover --> Entorno : QUERY_REF / INFORM
+Observacion *-- Lectura
+Propuesta *-- Lectura
+Resultado *-- Lectura
+Lectura *-- Sector
+@enduml

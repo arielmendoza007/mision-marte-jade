@@ -1,137 +1,86 @@
-# Misi�n Marte: selecci�n segura de muestras
+# Expedición Olympus Mons — JADE 4.6.0
 
-Simulaci�n JADE con tres agentes: `entorno`, `coordinador` y `rover`.
-El operador elige un sector. El Rover pide al Entorno la lectura simulada del siguiente punto y la remite al Coordinador. El coordinador propone
-`ESPERAR`, `ESCANEAR` o `MUESTRA`; el rover acepta si puede gastar la energ�a
-y conservar una reserva de 20 unidades. Si no puede, rechaza y regresa.
+Proyecto del tercer parcial de Sistemas Multiagentes. Es una **simulación didáctica** de una expedición desde una base en la falda de Olympus Mons hasta el **borde de su caldera**, con retorno a base. No representa distancias, alturas, datos de sensores ni capacidades reales de un rover. Olympus Mons es un volcán en escudo de pendientes suaves; la caldera es la depresión próxima a su cumbre. El perfil en pantalla es esquemático.
 
-## Reglas del sistema experto
+## Qué se hace en la interfaz
 
-Se aplican en este orden (umbrales did�cticos, no datos cient�ficos de Marte):
+El operador elige **un escenario**, no valores de sensores: ascenso normal, tormenta persistente o batería limitada. Pulsa **Iniciar expedición** una vez. Entorno genera lecturas reproducibles de Falda, Ladera y Caldera; Coordinador aplica las reglas del sistema experto; Rover decide si puede ejecutar cada propuesta y solicita por sí mismo la siguiente lectura. El viaje termina con muestra entregada o regreso preventivo. **Consultar rover** pide su estado actual por ACL.
 
-1. `polvo >= 70`  `ESPERAR`.
-2. Si hay obst�culo  `ESCANEAR`.
-3. `mineral >= 65`  `MUESTRA`.
-4. En otro caso  `ESCANEAR`.
-5. El rover acepta solo si `bater�a >= costo + 20`; si rechaza por energ�a,
-   ejecuta `REGRESAR`. Costos: muestra 15, escaneo 5, espera 1, regreso 8.
-
-Cada sector tiene tres puntos con lecturas fijas. Una nueva visita al mismo
-sector pasa al punto siguiente y luego vuelve al primero. Un escaneo registra
-el estado del punto y orienta la visita siguiente. No elimina obst�culos ni
-modifica las lecturas. Las condiciones son inventadas para la simulaci�n.
-
-## Ejecutar
-
-En la primera computadora, desde esta carpeta:
-
-```powershell
-.\Iniciar-Principal.ps1 -Puerto 1099 -IpLocal 192.168.1.10
-```
-
-En la segunda computadora, con la misma carpeta completa (incluido `lib/jade.jar`):
-
-```powershell
-.\Iniciar-Rover.ps1 -HostPrincipal 192.168.1.10 -Puerto 1099 -IpLocal 192.168.1.11
-```
-
-Sustituir ambas IP por las direcciones reales de cada m�quina. Para una prueba
-en una sola computadora, iniciar el principal sin `-IpLocal` y luego el rover
-con `-HostPrincipal localhost`. Hay que probar primero la conexi�n y las reglas
-del firewall en la red real de la exposici�n.
-
-El par�metro `-Local` del principal crea el Rover en la **misma** m�quina y
-sirve para practicar. Para demostrar el apartado distribuido, inicia el
-principal sin `-Local` y ejecuta `Iniciar-Rover.ps1` en la otra computadora.
-Usa un puerto fijo, por ejemplo 1099. `-Puerto 0` asigna un puerto aleatorio
-y por ello no sirve como direcci�n estable para el segundo equipo.
-
-### Comprobaci�n presencial de dos equipos
-
-1. En ambos equipos ejecuta `ipconfig` y apunta la direcci�n IPv4 de la red
-   compartida. Evita `127.0.0.1`, que solo identifica a la propia computadora.
-2. Copia `rover-marte` y la carpeta hermana `lib` con `jade.jar` a ambos
-   equipos. Usa el mismo c�digo en ambas copias.
-3. En la primera laptop ejecuta `Iniciar-Principal.ps1 -Puerto 1099
-   -IpLocal IP_PRIMERA`. Deben aparecer Entorno y Coordinador.
-4. En la segunda comprueba `Test-NetConnection IP_PRIMERA -Port 1099` y
-   ejecuta `Iniciar-Rover.ps1 -HostPrincipal IP_PRIMERA -Puerto 1099
-   -IpLocal IP_SEGUNDA`. En la ventana del contenedor debe aparecer Rover.
-5. En la consola pulsa `Consultar rover`. Debe responder bater�a 80. Despu�s
-   lanza B y comprueba el mismo folio `M-1` en las dos terminales. Guarda
-   una captura de cada equipo y el tiempo que aparece en la consola.
-
-Si el puerto es accesible pero JADE no une los contenedores, comprueba que
-`-IpLocal` coincida con la direcci�n IPv4 de cada equipo y que el firewall
-permita Java en esa red. Algunas redes universitarias a�slan equipos entre s�.
-En ese caso pod�is conectar ambas laptops a una red privada compartida y
-repetir la prueba antes de la exposici�n.
-
-## Mensajes principales
-
-| Origen  destino | Performativa | Contenido |
+| Escenario | Suceso relevante | Resultado esperado |
 | --- | --- | --- |
-| Entorno  Rover | `REQUEST` | Explorar un sector |
-| Rover  Entorno | `QUERY_REF` | Medir ese sector |
-| Entorno  Rover | `INFORM` | Observaci�n del terreno |
-| Rover  Coordinador | `REQUEST` | `Observacion` contiene una `Lectura` con su `Sector` |
-| Coordinador  Rover | `PROPOSE` | `Propuesta` con `Lectura` anidada |
-| Rover  Coordinador | `ACCEPT_PROPOSAL` / `REJECT_PROPOSAL` | La propuesta evaluada |
-| Rover  Entorno y Coordinador | `INFORM` | `Resultado` con `Lectura` anidada |
-| Entorno  Rover | `REQUEST` | Consulta de estado |
-| Rover  Entorno | `INFORM` | `EstadoRover` |
+| Normal | Rodea un obstáculo; espera a que baje el polvo; confirma la señal | Toma una muestra y regresa; batería 11/100 |
+| Tormenta persistente | El polvo sigue alto tras dos esperas | Rechaza una tercera espera y regresa; batería 30/100 |
+| Batería limitada | Empieza con 50/100; no alcanza para escanear y reservar el regreso | Rechaza el escaneo y regresa; batería 1/100 |
 
-Todos registran `OntologiaMarte` y `SLCodec`. Cada misi�n tiene un
-`conversation-id` como `M-1`. La consola muestra los pasos y el tiempo desde
-la petici�n hasta el resultado. Las cifras para el reporte deber�n proceder
-de pruebas realmente ejecutadas.
-## Primer ejercicio en una laptop
+La batería se inicializa **por escenario al iniciar una nueva expedición**. No hay recarga automática durante el recorrido. La energía restante de 1 al final del tercer caso significa que se gastaron 20 unidades simuladas en el regreso; las unidades no son una estimación de consumo real.
 
-Desde la carpeta rover-marte, ejecuta en PowerShell:
+## Responsabilidades y protocolo
 
-    .\Iniciar-Principal.ps1 -Local -IpLocal 127.0.0.1
+- **Entorno:** mantiene lecturas y cambios por escenario, muestra la ventana, responde `QUERY_REF` y comunica resultados al Coordinador. Se ejecuta en la computadora principal.
+- **Coordinador:** aplica R1 polvo >= 70 → ESPERAR; R2 obstáculo → RODEAR; R3 señal >= 65 sin confirmar en Caldera → ESCANEAR; R4 señal confirmada >= 65 → MUESTRA; R5 tramo seguro → AVANZAR. Propone, registra respuestas y calcula medidas.
+- **Rover:** conserva batería, posición, número de esperas y muestras. Solicita lecturas, acepta o rechaza cada propuesta según energía >= coste de acción + 20 para volver. Rechaza una tercera espera. Tras una muestra regresa por iniciativa propia. Puede ejecutarse en otra computadora.
 
-Si Windows restringe scripts locales, desde esa carpeta usa:
+Intercambian `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `ACCEPT_PROPOSAL` y `REJECT_PROPOSAL`; `conversation-id` agrupa todos los mensajes de una expedición. Los tres pares de agentes intercambian mensajes en ambos sentidos. `MessageTemplate` filtra por remitente, performativa y ontología. `Mensajes.crear` codifica objetos con FIPA-SL; `Mensajes.leer` los recupera. `OntologiaMarte` registra `Sector` (Concept), `Lectura` (Concept), `Exploracion`, `Observacion`, `Propuesta`, `Resultado`, `EstadoRover` y `Metricas` (Predicate). Ejemplo de objetos anidados: `Observacion → Lectura → Sector`.
 
-    powershell -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Principal.ps1 -Local -IpLocal 127.0.0.1
+Comportamientos usados: `CyclicBehaviour` (buzones), `SimpleBehaviour` (evaluar una lectura), `OneShotBehaviour` (inicio y consulta), `TickerBehaviour` (telemetría), `WakerBehaviour` (acciones temporizadas y plazo de misión). Las clases concretas están en `src/marte/agentes/`.
 
-La consola inicia con 80 unidades. Pulsa Consultar rover. Despu�s ejecuta un turno por sector en este orden: A, C, B, B, B, B. Anota la propuesta y la acci�n final. En el �ltimo turno el rover llega a base con 21 y se recarga a 80. Para repetir desde el principio det�n JADE con Ctrl+C y vuelve a iniciar.
+## Medición
 
-## Defensa en equipo
+El Coordinador envía en `Metricas` por misión: **tasa de respuesta** = respuestas a propuestas / propuestas enviadas y **latencia media de respuesta** = promedio en microsegundos entre cada `PROPOSE` y su `ACCEPT_PROPOSAL` o `REJECT_PROPOSAL`. El Entorno muestra ambas medidas en la bitácora. El reloj del Entorno además mide desde la solicitud inicial hasta el regreso en ms. Son operacionalizaciones propias inspiradas por las características de habilidad social, autonomía y proactividad estudiadas por Soza Pollman (2014), **no fórmulas atribuidas al artículo**. Un rechazo informado cuenta como respuesta; el éxito del objetivo se informa aparte. La latencia incluye mensajería JADE y planificación local y puede variar en otra computadora.
 
-Cada integrante hace el recorrido completo. En la siguiente ronda cambien qui�n opera, qui�n predice, qui�n se�ala el mensaje, qui�n ubica la regla en Java y qui�n diagnostica un fallo.
+## Iniciar en una computadora
 
-1. Visita C tres veces desde el inicio. Con bater�a suficiente, el polvo pasa de 85 a 72 y luego a 55. Explica por qu� solo la tercera visita permite tomar muestra.
-2. Explora A dos veces. En el segundo punto hay se�al 70 y un obst�culo. Explica por qu� R2 tiene prioridad sobre R3.
-3. �Por qu� puede cambiar el resultado si se repite B? La se�al de los tres puntos de B supera el umbral, pero la bater�a pertenece al Rover. Con 35 puede tomar muestra y conservar 20. Con 34 debe regresar.
-4. Localiza Observacion  Lectura  Sector en modelo/. Sector y Lectura son conceptos anidables. Observacion es el predicado que viaja en el mensaje. Codificaci�n y lectura est�n en Mensajes.java.
-5. Desconecta el proceso Rover en el ensayo con dos equipos. Inicia una misi�n. A los ocho segundos Entorno libera el bot�n. Comprueba host, puerto y conexi�n del contenedor, vuelve a iniciar Rover, pulsa Consultar rover y lanza otra misi�n. El reinicio restablece sus recursos.
-6. �Qu� significa el tiempo de la consola? Desde enviar REQUEST hasta recibir el resultado con el mismo identificador, medido en Entorno. Incluye los 700 ms de operaci�n simulada. Un cron�metro en cada m�quina introducir�a diferencias de reloj.
+Descomprime el ZIP completo. Abre PowerShell **dentro de esta carpeta `rover-marte`**. Requiere JDK (`java` y `javac`); los scripts también buscan el instalado por la extensión Java de VS Code. El ZIP contiene `lib/jade.jar`.
 
-## D�a de la prueba de red
-
-Conecta ambas laptops a la misma red y clona el repositorio rover-marte, que incluye lib/jade.jar a cada una. En el principal usa ipconfig para obtener su IPv4, inicia con -IpLocal y esa IPv4. En el segundo equipo usa Test-NetConnection IP_DEL_PRINCIPAL -Port 1099 y despu�s Iniciar-Rover.ps1. Si aparece un aviso de Windows para Java en su red privada, revisen la autorizaci�n de red de ambas laptops. Confirmen bater�a con la consulta directa antes de la primera misi�n. Anoten equipo, hora, sector, acci�n y tiempo, y tomen evidencia del contenedor remoto y la consola con el mismo identificador de misi�n.
-
-
-## Ensayo remoto con Hamachi
-
-Ambos integrantes instalan Hamachi en sus computadoras y encienden el cliente. Uno crea una red mesh en **Network > Create a new network**, elige un ID y una contrase�a y se los comunica al compa�ero por privado. El compa�ero usa **Network > Join an existing network** con esos datos. Cada uno copia su IPv4 virtual de Hamachi, de la forma 25.x.x.x.
-
-Ambos clonan este repositorio y necesitan un JDK. La carpeta `lib/jade.jar` ya est� incluida. Detengan cualquier sesi�n local anterior con Ctrl+C. En la computadora de �ngel (sustituyendo la IP por la suya de Hamachi):
+El repositorio público contiene el código y los diagramas editables; para ejecutar una clonación, copia `jade.jar` del ZIP a `lib/jade.jar` o descarga JADE 4.6.0 desde el sitio oficial y coloca su JAR allí. Los PDF del ZIP son los anexos ya listos para imprimir; `documentacion/generar_pdf.py` permite regenerarlos en Windows con Python, `reportlab` y `pypdf`.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Principal.ps1 -Puerto 1099 -IpLocal 25.A.A.A -JadeGui
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Principal.ps1 -Local -IpLocal 127.0.0.1 -Puerto 0
 ```
 
-Se abren la consola de misi�n y la administraci�n de JADE. El compa�ero, en su computadora, comprueba el puerto y lanza el contenedor perif�rico (sustituyendo las dos IP):
+Ensayo automático local con los tres escenarios, CSV de resultados, métricas y captura de la consola:
 
 ```powershell
-Test-NetConnection 25.A.A.A -Port 1099
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Rover.ps1 -HostPrincipal 25.A.A.A -Puerto 1099 -IpLocal 25.B.B.B -PuertoLocal 1100
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Ensayar-Local.ps1
 ```
 
-La computadora remota muestra `[rover] Listo` en su terminal. La consola Swing solo aparece en la computadora principal. La administraci�n de JADE de �ngel debe listar el contenedor perif�rico y `rover`. Pulsar **Consultar rover** debe devolver bater�a 80. Iniciar B debe producir el mismo folio `M-1` en las dos terminales y una muestra con bater�a 65. Capturen ambas pantallas y el tiempo de la consola para la evidencia distribuida.
+Para ver contenedores distintos en **una misma laptop**, abre dos ventanas PowerShell dentro de esta carpeta. En la primera:
 
-No usen `-Local` en el principal ni `-Puerto 0` en esta prueba. `127.0.0.1` apunta a cada propia computadora. Si falla `Test-NetConnection`, revisen que Hamachi muestre a ambos conectados, las IP y el firewall de Java para el puerto 1099. Si conecta pero los mensajes no vuelven, comprueben tambi�n el puerto 1100 y que `-IpLocal` del Rover sea su IP Hamachi. Eviten desactivar completamente el firewall.
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Principal.ps1 -Puerto 1099 -IpLocal 127.0.0.1 -JadeGui
+```
 
-JADE 4.6.0 est� disponible bajo LGPL. Se incluye su archivo `lib/jade.jar` para la pr�ctica. Documentaci�n y proyecto original: https://jade.tilab.com/
+En la segunda:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Rover.ps1 -HostPrincipal 127.0.0.1 -Puerto 1099 -IpLocal 127.0.0.1 -PuertoLocal 1100
+```
+
+El contenedor principal abre la ventana y la GUI de JADE. El Rover **no tiene segunda interfaz gráfica**: su terminal muestra decisiones y su contenedor aparece en la GUI de JADE. Esta prueba local no demuestra la distribución entre máquinas.
+
+## Prueba presencial en dos laptops
+
+1. Copien la carpeta entera `rover-marte` en ambos equipos. Conecten los dos a la misma red o a la misma red virtual Hamachi y obtengan las IPv4 de ambos. Si usan Hamachi, utilicen la IPv4 que muestra Hamachi en cada laptop (por ejemplo, `25.x.x.x`); **no** `127.0.0.1`.
+2. En el equipo principal, desde esta carpeta, inicien el contenedor principal:
+
+   ```powershell
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Principal.ps1 -Puerto 1099 -IpLocal IP_PRINCIPAL -JadeGui
+   ```
+
+3. En la laptop del Rover, comprueben la ruta de conexión y únanse:
+
+   ```powershell
+   Test-NetConnection IP_PRINCIPAL -Port 1099
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Iniciar-Rover.ps1 -HostPrincipal IP_PRINCIPAL -Puerto 1099 -IpLocal IP_ROVER -PuertoLocal 1100
+   ```
+
+4. En JADE RMA verifiquen que `rover` esté en el segundo contenedor. En la consola pulsen **Consultar rover**, ejecuten el escenario normal y comprueben M-1 en ambas terminales, `REGRESAR`, muestra = 1 y las métricas. Guarden capturas de los dos equipos, RMA y tiempos observados en la sección 8 del reporte.
+5. Si falla el puerto 1099, revisen IP, Hamachi y regla de firewall específica para el proceso Java y puerto 1099. Si se une el contenedor pero no vuelven mensajes, comprueben la IPv4 anunciada por el Rover, el puerto local 1100 y las reglas aplicables; eviten desactivar todo el firewall. Dejen ambas terminales abiertas.
+
+El entorno de ejecución aislado donde se preparó esta entrega no permite verificar la conexión entre dos máquinas; regístrenla con sus mediciones reales, no con los datos locales del CSV.
+
+## Documentación y materiales
+
+`documentacion/` contiene los tres diagramas AUML y el reporte para imprimir. El texto impreso requiere completar nombres, autoevaluación y evidencia presencial; comprueben que los diagramas quedan legibles en las hojas. `src/marte/PruebaOntologia.java` verifica extracción de mensajes con instancias anidadas.
+
+Referencias: [JADE](https://jade.tilab.com/); [Soza Pollman (2014)](https://www.scielo.cl/scielo.php?script=sci_arttext&pid=S0718-33052014000300014); [NASA, Olympus Mons](https://science.nasa.gov/photojournal/a-traverse-across-the-summit-of-olympus-mons/); [ESA, caldera](https://www.esa.int/articles/about-us/directorates/science/mars-express/olympus-mons-the-caldera-in-close-up).

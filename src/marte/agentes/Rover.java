@@ -9,25 +9,32 @@ import jade.core.behaviours.WakerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import marte.modelo.EstadoRover;
+import marte.modelo.Exploracion;
+import marte.modelo.Lectura;
 import marte.modelo.Mensajes;
+import marte.modelo.Observacion;
 import marte.modelo.OntologiaMarte;
 import marte.modelo.Propuesta;
-import marte.modelo.Exploracion;
-import marte.modelo.Observacion;
 import marte.modelo.Resultado;
 
-/** Decide si dispone de energ�a y ejecuta una acci�n simulada. */
+/** Conserva energía, elige el siguiente tramo y trae la muestra a base. */
 public class Rover extends Agent {
+    private static final int COSTO_REGRESO = 20;
+    private static final String[] RUTA = {"Falda", "Ladera", "Caldera"};
     private int bateria = 80;
-    private int muestras = 0;
-    private boolean ocupado = false;
+    private int muestras;
+    private int tramo;
+    private int esperas;
+    private String misionActiva;
+    private String escenario;
+    private boolean ocupado;
 
     @Override protected void setup() {
         OntologiaMarte.registrar(this);
         addBehaviour(new Presentarse());
         addBehaviour(new Escuchar());
         addBehaviour(new Telemetria(this, 5000));
-        System.out.println("[rover] Listo. Bater�a inicial: " + bateria);
+        System.out.println("[rover] Listo para ascender. Batería=" + bateria);
     }
 
     private class Presentarse extends OneShotBehaviour {
@@ -35,31 +42,54 @@ public class Rover extends Agent {
     }
 
     private class Telemetria extends TickerBehaviour {
-        Telemetria(Agent agente, long intervalo) { super(agente, intervalo); }
+        Telemetria(Agent a, long t) { super(a, t); }
         @Override protected void onTick() { informarEstado("telemetria"); }
     }
 
-    private void informarEstado(String mision) {
+    private void informarEstado(String id) {
         EstadoRover e = new EstadoRover();
-        e.setMision(mision);
-        e.setBateria(bateria);
-        e.setMuestras(muestras);
-        send(Mensajes.crear(this, ACLMessage.INFORM, "entorno", mision, e));
+        e.setMision(id); e.setBateria(bateria); e.setMuestras(muestras);
+        send(Mensajes.crear(this, ACLMessage.INFORM, "entorno", id, e));
+    }
+
+    private void pedirLectura(boolean espera, boolean desvio, boolean confirmacion) {
+        Exploracion orden = new Exploracion(RUTA[tramo]);
+        orden.setEscenario(escenario);
+        orden.setEspera(espera);
+        orden.setDesvio(desvio);
+        orden.setConfirmacion(confirmacion);
+        send(Mensajes.crear(this, ACLMessage.QUERY_REF, "entorno", misionActiva, orden));
     }
 
     private class Escuchar extends CyclicBehaviour {
         private final MessageTemplate propuesta = MessageTemplate.and(
             MessageTemplate.MatchPerformative(ACLMessage.PROPOSE),
             MessageTemplate.MatchSender(new AID("coordinador", AID.ISLOCALNAME)));
-        private final MessageTemplate consulta = MessageTemplate.and(
-            MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.REQUEST), MessageTemplate.MatchPerformative(ACLMessage.INFORM)),
-            MessageTemplate.MatchSender(new AID("entorno", AID.ISLOCALNAME)));
+        private final MessageTemplate entorno = MessageTemplate.and(
+            MessageTemplate.MatchSender(new AID("entorno", AID.ISLOCALNAME)),
+            MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
+                MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 
         @Override public void action() {
-            ACLMessage mensaje = myAgent.receive(MessageTemplate.or(propuesta, consulta));
+            ACLMessage mensaje = myAgent.receive(MessageTemplate.and(
+                MessageTemplate.MatchOntology(OntologiaMarte.NOMBRE),
+                MessageTemplate.or(propuesta, entorno)));
             if (mensaje == null) { block(); return; }
             try {
                 String id = mensaje.getConversationId();
+                if (mensaje.getPerformative() == ACLMessage.REQUEST) {
+                    if ("consulta".equals(id)) { informarEstado(id); return; }
+                    Exploracion inicio = Mensajes.leer(myAgent, mensaje, Exploracion.class);
+                    if (misionActiva != null) return;
+                    misionActiva = id;
+                    escenario = inicio.getEscenario();
+                    tramo = 0; esperas = 0; muestras = 0;
+                    bateria = "BATERIA".equals(inicio.getEscenario()) ? 50 : 80;
+                    informarEstado(id);
+                    pedirLectura(false, false, false);
+                    return;
+                }
+                if (!id.equals(misionActiva)) return;
                 if (mensaje.getPerformative() == ACLMessage.INFORM) {
                     Observacion datos = Mensajes.leer(myAgent, mensaje, Observacion.class);
                     if (id.equals(datos.getLectura().getMision())) {
@@ -67,89 +97,90 @@ public class Rover extends Agent {
                     }
                     return;
                 }
-                if (mensaje.getPerformative() == ACLMessage.REQUEST) {
-                    if ("consulta".equals(id)) informarEstado(id);
-                    else {
-                        Exploracion orden = Mensajes.leer(myAgent, mensaje, Exploracion.class);
-                        send(Mensajes.crear(myAgent, ACLMessage.QUERY_REF, "entorno", id, orden));
-                    }
-                    return;
-                }
                 Propuesta p = Mensajes.leer(myAgent, mensaje, Propuesta.class);
-                if (!p.getMision().equals(mensaje.getConversationId())) {
-                    throw new IllegalArgumentException("El identificador de misi�n no coincide");
-                }
-                int costo = costo(p.getAccion());
-                boolean aceptada = !ocupado && bateria >= costo + 20;
+                if (!id.equals(p.getMision())) throw new IllegalArgumentException("Misión distinta");
+                boolean agotada = "ESPERAR".equals(p.getAccion()) && esperas >= 2;
+                boolean aceptada = !ocupado && !agotada && bateria >= costo(p.getAccion()) + COSTO_REGRESO;
                 int tipo = aceptada ? ACLMessage.ACCEPT_PROPOSAL : ACLMessage.REJECT_PROPOSAL;
-                myAgent.send(Mensajes.crear(myAgent, tipo, "coordinador", p.getMision(), p));
-                if (aceptada) {
-                    ocupado = true;
-                    addBehaviour(new Ejecutar(myAgent, 700, p, false));
-                } else if (!ocupado) {
-                    ocupado = true;
-                    addBehaviour(new Ejecutar(myAgent, 700, p, true));
-                }
+                send(Mensajes.crear(myAgent, tipo, "coordinador", id, p));
+                if (ocupado) return;
+                ocupado = true;
+                addBehaviour(new Ejecutar(myAgent, 650, p, !aceptada,
+                    agotada ? "Tormenta persistente después de dos esperas"
+                        : "Reserva insuficiente para continuar y regresar"));
             } catch (RuntimeException e) { System.err.println("[rover] " + e.getMessage()); }
         }
     }
 
     private int costo(String accion) {
         switch (accion) {
-            case "MUESTRA": return 15;
-            case "ESCANEAR": return 5;
+            case "AVANZAR": return 8;
+            case "RODEAR": return 12;
             case "ESPERAR": return 1;
-            default: throw new IllegalArgumentException("Acci�n desconocida: " + accion);
+            case "ESCANEAR": return 5;
+            case "MUESTRA": return 15;
+            default: throw new IllegalArgumentException("Acción desconocida: " + accion);
         }
     }
 
-    /** Espera breve visible en la interfaz; no bloquea el hilo del agente. */
-    private class Ejecutar extends WakerBehaviour {
-        private final Propuesta propuesta;
-        private final boolean regreso;
-        Ejecutar(Agent agente, long retraso, Propuesta propuesta, boolean regreso) {
-            super(agente, retraso);
-            this.propuesta = propuesta;
-            this.regreso = regreso;
-        }
+    private void informarResultado(Resultado r) {
+        r.setBateria(bateria);
+        r.setMuestras(muestras);
+        send(Mensajes.crear(this, ACLMessage.INFORM, "entorno", r.getMision(), r));
+        System.out.println("[rover] " + r.getMision() + " " + r.getAccion()
+            + ", batería=" + bateria + ", muestras=" + muestras);
+    }
 
+    private void regresar(Propuesta p, boolean objetivo, String motivo) {
+        bateria = Math.max(0, bateria - COSTO_REGRESO);
+        Resultado r = new Resultado();
+        r.setMision(p.getMision()); r.setLectura(p.getLectura());
+        r.setAccion("REGRESAR"); r.setFinalizado(true); r.setObjetivo(objetivo);
+        r.setDetalle(motivo);
+        informarResultado(r);
+        misionActiva = null;
+        ocupado = false;
+    }
+
+    /** El retraso simula la acción sin bloquear la recepción ACL. */
+    private class Ejecutar extends WakerBehaviour {
+        private final Propuesta p;
+        private final boolean abortar;
+        private final String motivo;
+        Ejecutar(Agent a, long ms, Propuesta p, boolean abortar, String motivo) {
+            super(a, ms); this.p = p; this.abortar = abortar; this.motivo = motivo;
+        }
         @Override protected void onWake() {
+            if (abortar) { regresar(p, false, motivo); return; }
+            bateria -= costo(p.getAccion());
             Resultado r = new Resultado();
-            r.setMision(propuesta.getMision());
-            r.setLectura(propuesta.getLectura());
-            if (regreso) {
-                r.setAccion("REGRESAR");
-                r.setDetalle("R5: bater�a insuficiente para la acci�n y reserva de 20; regreso a base");
-                bateria = Math.max(0, bateria - 8);
-            } else {
-                r.setAccion(propuesta.getAccion());
-                r.setDetalle(propuesta.getMotivo());
-                if ("ESCANEAR".equals(propuesta.getAccion())) {
-                    if (propuesta.getLectura().getObstaculo()) {
-                        r.setDetalle("Escaneo: paso bloqueado en el punto "
-                            + propuesta.getLectura().getSector().getPunto()
-                            + ". Se cartografi� el obst�culo; la pr�xima visita examinar� otro punto.");
-                    } else {
-                        r.setDetalle("Escaneo del punto " + propuesta.getLectura().getSector().getPunto()
-                            + ": se�al mineral " + propuesta.getLectura().getMineral()
-                            + "/100. La pr�xima visita examinar� otro punto.");
-                    }
-                }
-                bateria -= costo(propuesta.getAccion());
-                if ("MUESTRA".equals(propuesta.getAccion())) { muestras++; }
-            }
-            r.setBateria(bateria);
-            r.setMuestras(muestras);
-            myAgent.send(Mensajes.crear(myAgent, ACLMessage.INFORM, "coordinador", r.getMision(), r));
-            myAgent.send(Mensajes.crear(myAgent, ACLMessage.INFORM, "entorno", r.getMision(), r));
-            System.out.println("[rover] " + r.getMision() + ": " + r.getAccion()
-                + ", bater�a=" + bateria + ", muestras=" + muestras);
+            r.setMision(p.getMision()); r.setLectura(p.getLectura());
+            r.setAccion(p.getAccion()); r.setDetalle(p.getMotivo());
+            r.setFinalizado(false); r.setObjetivo(false);
+            if ("MUESTRA".equals(p.getAccion())) muestras = 1;
+            informarResultado(r);
             ocupado = false;
-            if (regreso) {
-                // Se descarga la muestra en base y se recarga para la siguiente salida.
-                // El contador representa las muestras acumuladas de toda la sesi�n.
-                bateria = 80;
-                informarEstado("recarga");
+            switch (p.getAccion()) {
+                case "AVANZAR":
+                    tramo++;
+                    esperas = 0;
+                    pedirLectura(false, false, false);
+                    break;
+                case "RODEAR": pedirLectura(false, true, false); break;
+                case "ESPERAR":
+                    esperas++;
+                    pedirLectura(true, false, false);
+                    break;
+                case "ESCANEAR": pedirLectura(false, false, true); break;
+                case "MUESTRA":
+                    ocupado = true;
+                    addBehaviour(new WakerBehaviour(myAgent, 650) {
+                        @Override protected void onWake() {
+                            regresar(p, true, "Borde de la caldera alcanzado; muestra entregada en base");
+                        }
+                    });
+                    break;
+                default: throw new IllegalStateException("Acción no prevista");
             }
         }
     }

@@ -2,7 +2,7 @@ package marte.modelo;
 
 import jade.content.Predicate;
 
-/** Acci�n realmente ejecutada, que puede diferir de la propuesta. */
+/** Acción realmente ejecutada, que puede diferir de la propuesta. */
 public class Resultado implements Predicate {
     private String mision;
     private String accion;
@@ -10,6 +10,8 @@ public class Resultado implements Predicate {
     private int bateria;
     private int muestras;
     private Lectura lectura;
+    private boolean finalizado;
+    private boolean objetivo;
 
     public Resultado() { }
     public String getMision() { return mision; }
@@ -24,4 +26,8 @@ public class Resultado implements Predicate {
     public void setMuestras(int muestras) { this.muestras = muestras; }
     public Lectura getLectura() { return lectura; }
     public void setLectura(Lectura lectura) { this.lectura = lectura; }
+    public boolean getFinalizado() { return finalizado; }
+    public void setFinalizado(boolean finalizado) { this.finalizado = finalizado; }
+    public boolean getObjetivo() { return objetivo; }
+    public void setObjetivo(boolean objetivo) { this.objetivo = objetivo; }
 }

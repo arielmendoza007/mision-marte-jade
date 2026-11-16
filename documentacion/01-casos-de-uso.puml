@@ -1,0 +1,24 @@
+@startuml
+left to right direction
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontSize 15
+skinparam usecaseBorderColor #455565
+actor "Operador" as O
+actor "Rover remoto" as R
+rectangle "Expedición Olympus Mons" {
+  usecase "Elegir escenario e\niniciar expedición" as U1
+  usecase "Consultar batería\ny muestras" as U2
+  usecase "Observar ascenso,\nregreso y métricas" as U3
+  usecase "Evaluar lecturas\ny proponer acciones" as U4
+  usecase "Aceptar o rechazar\ny ejecutar acción" as U5
+}
+O --> U1
+O --> U2
+O --> U3
+R --> U2
+R --> U5
+U1 ..> U4 : <<include>>
+U4 ..> U5 : <<include>>
+U5 ..> U3 : <<include>>
+@enduml
