@@ -14,7 +14,8 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JSplitPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -124,27 +125,57 @@ public class ConsolaMision extends JFrame {
         lateral.add(regla);
         lateral.add(Box.createVerticalStrut(8));
         lateral.add(tiempo);
-        centro.add(lateral, BorderLayout.EAST);
-        raiz.add(centro, BorderLayout.CENTER);
+        JScrollPane datos = new JScrollPane(lateral);
+        datos.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        datos.setBorder(null);
+        datos.setPreferredSize(new Dimension(343, 0));
+        lateral.setPreferredSize(null);
+        centro.add(datos, BorderLayout.EAST);
+
 
         JPanel bitacora = new JPanel(new BorderLayout(0, 7));
         bitacora.setBackground(TARJETA);
         bitacora.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(58, 75, 92)),
             BorderFactory.createEmptyBorder(9, 12, 10, 12)));
-        bitacora.add(texto("BITÁCORA ACL  ·  mensajes entre agentes", 11, NARANJA), BorderLayout.NORTH);
+        JPanel encabezado = new JPanel(new BorderLayout());
+        encabezado.setOpaque(false);
+        encabezado.add(texto("Bitácora ACL · mensajes del Entorno", 16, NARANJA), BorderLayout.WEST);
+        JButton ampliar = new JButton("Ampliar bitácora");
+        encabezado.add(ampliar, BorderLayout.EAST);
+        bitacora.add(encabezado, BorderLayout.NORTH);
+        ampliar.addActionListener(e -> {
+            JDialog detalle = new JDialog(this, "Bitácora ACL", false);
+            JTextArea historial = new JTextArea(registro.getDocument());
+            historial.setEditable(false);
+            historial.setLineWrap(true);
+            historial.setWrapStyleWord(true);
+            historial.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 18));
+            historial.setCaretPosition(historial.getDocument().getLength());
+            detalle.add(new JScrollPane(historial));
+            detalle.setSize(getWidth() * 9 / 10, getHeight() * 3 / 4);
+            detalle.setLocationRelativeTo(this);
+            detalle.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            detalle.setVisible(true);
+        });
         registro.setEditable(false);
         registro.setLineWrap(true);
         registro.setWrapStyleWord(true);
-        registro.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        registro.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
         registro.setBackground(new Color(23, 31, 42));
         registro.setForeground(new Color(220, 231, 232));
         registro.setCaretColor(BLANCO);
         JScrollPane desplazamiento = new JScrollPane(registro);
         desplazamiento.setBorder(BorderFactory.createEmptyBorder());
         bitacora.add(desplazamiento, BorderLayout.CENTER);
-        bitacora.setPreferredSize(new Dimension(0, 116));
-        raiz.add(bitacora, BorderLayout.SOUTH);
+        JSplitPane division = new JSplitPane(JSplitPane.VERTICAL_SPLIT, centro, bitacora);
+        division.setResizeWeight(0.70);
+        division.setContinuousLayout(true);
+        division.setDividerSize(9);
+        bitacora.setMinimumSize(new Dimension(0, 95));
+        centro.setMinimumSize(new Dimension(0, 180));
+        raiz.add(division, BorderLayout.CENTER);
+        SwingUtilities.invokeLater(() -> division.setDividerLocation(0.70));
 
         iniciar.addActionListener(e -> {
             iniciar.setEnabled(false);

@@ -31,7 +31,7 @@ Anexos vectoriales, cada uno en una página legible: `01-casos-de-uso.pdf` (acto
 
 ## Desarrollo — 3. Interfaz gráfica (2)
 
-La pantalla principal ofrece iniciar la expedición y consultar el Rover. El menú Ensayos permite repetir las tres condiciones iniciales. La cámara frontal Swing representa el bloque de lava, la visibilidad con polvo y el escaneo. Un aviso de acción en curso inicia el dibujo. El destino y la entrega se confirman al recibir el resultado del Rover. El panel conserva la última lectura, la batería, la decisión y la duración total.
+La pantalla principal ofrece iniciar la expedición y consultar el Rover. El menú Ensayos permite repetir las tres condiciones iniciales. La bitácora del Entorno se amplía arrastrando el divisor o pulsando Ampliar bitácora. Las respuestas directas entre Coordinador y Rover se comprueban en la consola del Coordinador o con el Sniffer de JADE. La cámara frontal Swing representa el bloque de lava, la visibilidad con polvo y el escaneo. Un aviso de acción en curso inicia el dibujo. El destino y la entrega se confirman al recibir el resultado del Rover. El panel conserva la última lectura, la batería, la decisión y la duración total.
 
 ## Desarrollo — 4. Implementación de agentes (0.5)
 
