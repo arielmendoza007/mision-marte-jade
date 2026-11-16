@@ -176,19 +176,13 @@ def casos():
     c.line(83, 362, 106, 340)
     c.roundRect(195, 110, 600, 390, 8)
     texto(c, 495, 478, "Sistema: expedición Olympus Mons", 14, True)
-    casos = [(330, 382, "Iniciar expedición"), (624, 382, "Consultar estado del Rover"),
-        (330, 259, "Observar ruta y resultados"), (624, 259, "Evaluar lecturas y proponer"),
-        (480, 158, "Aceptar, rechazar y ejecutar")]
-    for x, y, nombre in casos:
+    for y, nombre in [(395, "Iniciar expedición"), (290, "Consultar batería y muestras"),
+                      (185, "Observar decisiones y resultado")]:
+        c.setStrokeColor(AZUL)
+        c.line(112, 387, 345, y)
         c.setFillColor(GRIS)
-        c.ellipse(x-122, y-27, x+122, y+27, fill=1, stroke=1)
-        texto(c, x, y-4, nombre, 10)
-    linea(c, 113, 391, 208, 382)
-    linea(c, 115, 389, 506, 382)
-    linea(c, 113, 376, 208, 259)
-    linea(c, 330, 350, 590, 274, "incluye", True)
-    linea(c, 615, 231, 520, 185, "propone", True)
-    linea(c, 465, 130, 350, 233, "informa", True)
+        c.ellipse(345, y-28, 665, y+28, fill=1, stroke=1)
+        texto(c, 505, y-4, nombre, 13)
     c.showPage(); c.save()
 
 

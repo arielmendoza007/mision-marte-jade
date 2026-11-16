@@ -63,6 +63,26 @@ public class EnsayoConsola {
                 Thread.sleep(100);
             }
             esperar("Batería: 80/100");
+            SwingUtilities.invokeAndWait(() -> {
+                for (Component c : controles) {
+                    if (c instanceof JButton && "Consultar rover".equals(((JButton)c).getText()))
+                        ((JButton)c).doClick();
+                }
+            });
+            esperarRegistro("Rover → Entorno INFORM batería=80");
+            SwingUtilities.invokeAndWait(() -> {
+                for (Component c : controles) {
+                    if (c instanceof JButton && "Ampliar bitácora".equals(((JButton)c).getText()))
+                        ((JButton)c).doClick();
+                }
+                for (Window w : Window.getWindows()) {
+                    if (w instanceof JDialog && w.isShowing() && "Bitácora ACL".equals(((JDialog)w).getTitle())) {
+                        w.dispose();
+                        return;
+                    }
+                }
+                throw new AssertionError("La bitácora ampliada no abrió");
+            });
             String[] escenarios = {"NORMAL", "TORMENTA", "BATERIA"};
             String[] finales = {"OBJETIVO CUMPLIDO", "REGRESO PREVENTIVO", "REGRESO PREVENTIVO"};
             int[] muestras = {1, 0, 0};
