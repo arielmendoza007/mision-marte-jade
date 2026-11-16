@@ -18,7 +18,9 @@ jobs:
       - name: Preparar JADE y compilar
         run: |
           mkdir -p lib out
-          curl -fLS --retry 2 --max-time 50 https://jade.tilab.com/maven/com/tilab/jade/jade/4.6.0/jade-4.6.0.jar -o lib/jade.jar
+          curl -fsSL --connect-timeout 4 --max-time 12 https://jade.tilab.com/maven/com/tilab/jade/jade/4.6.0/jade-4.6.0.jar -o lib/jade.jar ||
+            curl -fsSL --max-time 40 https://raw.githubusercontent.com/DanTilinca/supply-logistics-negotiator/1c8762a10275ed27d40ec5a3f5161a2f87942963/lib/m2/com/tilab/jade/jade/4.6.0/jade-4.6.0.jar -o lib/jade.jar
+          echo '8851fa860ee28e8a72a2c798cdb10ef5f2a2514321c6bfedd1f7ddb8dba21011  lib/jade.jar' | sha256sum -c -
           find src pruebas -name '*.java' > "$RUNNER_TEMP/fuentes"
           javac -encoding UTF-8 -cp lib/jade.jar -d out @"$RUNNER_TEMP/fuentes"
           java -cp out:lib/jade.jar marte.PruebaOntologia
