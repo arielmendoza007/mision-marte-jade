@@ -38,4 +38,4 @@ Inicio 80 → AVANZAR (72) → RODEAR (60) → AVANZAR (52) → ESPERAR (51) →
 
 ## Antes de imprimir y presentar
 
-Completar los cinco nombres y la autoevaluación auténtica. Probar dos laptops, apuntar IPs, hora, resultado y latencia observados, adjuntar capturas auténticas; revisar todas las páginas a tamaño de impresión, paginar y engrapar. Si no hubo prueba remota, no afirmar que sí la hubo.
+Verificar los cinco nombres y la autoevaluación anotada; completar el nombre de la docente. Probar dos laptops, apuntar IPs, hora, resultado y latencia observados, adjuntar capturas auténticas; revisar todas las páginas a tamaño de impresión, paginar y engrapar. Si no hubo prueba remota, no afirmar que sí la hubo.
