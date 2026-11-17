@@ -4,12 +4,22 @@
 | --- | --- |
 | Institución / curso | UAEH, ICBI / Optativa I: Sistemas Multiagentes, grupo 1 |
 | Proyecto | Expedición autónoma al borde de la caldera de Olympus Mons |
-| Equipo | COMPLETAR: nombres de los cinco integrantes |
+| Equipo | Angel Ariel Mendoza Lopez; Brandon Torres de Paz; Leonardo Manriquez Ramos; Miguel Islas Reyes; Jesus Osvaldo Garcia Damian |
 | Docente / fecha de entrega | COMPLETAR / 18 de noviembre de 2026 |
 
 ## Autoevaluación del equipo
 
-Completar entre todos antes de imprimir: qué diseñó y explicó cada persona, qué error corrigió durante los ensayos, calificación razonada que asignan a su trabajo y dos mejoras pendientes. **No declarar como hecha la prueba distribuida hasta ejecutarla entre dos laptops.**
+El equipo propone una autoevaluación individual de **10/10** para cada integrante por el trabajo colectivo de diseñar, desarrollar, probar y preparar la defensa de la simulación. Esta es la valoración propuesta por el equipo; no sustituye la calificación de la docente ni acredita una prueba distribuida que todavía no se ha documentado.
+
+| Integrante | Autoevaluación |
+| --- | --- |
+| Angel Ariel Mendoza Lopez | 10/10 |
+| Brandon Torres de Paz | 10/10 |
+| Leonardo Manriquez Ramos | 10/10 |
+| Miguel Islas Reyes | 10/10 |
+| Jesus Osvaldo Garcia Damian | 10/10 |
+
+**Justificación conjunta:** se prepararon tres agentes con responsabilidades distintas, reglas de sistema experto, comunicación ACL, ontología con instancias anidadas, interfaz, diagramas, tres ensayos reproducibles y medidas registradas. Cada integrante debe estudiar y demostrar el funcionamiento completo ante la docente. **Pendientes para sustentar la entrega:** ejecutar y registrar la conexión entre dos laptops y comprobar que los cinco pueden explicar y solucionar un fallo de su implementación. No atribuir tareas individuales ni errores corregidos a una persona sin confirmarlo con el equipo.
 
 ## Introducción
 
@@ -67,7 +77,7 @@ Registro de laboratorio local: `ensayo-local.csv`, `metricas-local.txt`, `captur
 
 ## Conclusiones
 
-Tres agentes autónomos colaboran y negocian decisiones mediante JADE y una ontología compartida. El recorrido tiene meta y final verificables: completar muestra y retorno o abortar por seguridad. La interfaz deja ver la regla aplicada, el trayecto, los mensajes y las medidas; los tres escenarios locales ayudan a defender tanto el acierto como las limitaciones. Completar la conclusión del equipo con lo ocurrido en la prueba distribuida.
+Tres agentes autónomos colaboran y negocian decisiones mediante JADE y una ontología compartida. El recorrido tiene meta y final verificables: completar muestra y retorno o abortar por seguridad. La interfaz deja ver la regla aplicada, el trayecto, los mensajes y las medidas; los tres escenarios locales ayudan a defender tanto el acierto como las limitaciones. Completar la conclusión del equipo con lo ocurrido en la prueba distribuida una vez realizada.
 
 ## Referencias bibliográficas
 
@@ -76,4 +86,4 @@ Tres agentes autónomos colaboran y negocian decisiones mediante JADE y una onto
 3. NASA. A Traverse Across the Summit of Olympus Mons. https://science.nasa.gov/photojournal/a-traverse-across-the-summit-of-olympus-mons/
 4. ESA. Olympus Mons — the caldera in close-up. https://www.esa.int/articles/about-us/directorates/science/mars-express/olympus-mons-the-caldera-in-close-up
 
-**Antes de imprimir:** sustituir los campos COMPLETAR; redactar autoevaluación individual o acordada; anexar evidencia distribuida real, revisar paginado y legibilidad; engrapar. La rúbrica solicita recuadro de identificación sin portada.
+**Antes de imprimir:** completar el nombre de la docente; verificar con los cinco integrantes la escritura de sus nombres y la autoevaluación; anexar evidencia distribuida real, revisar paginado y legibilidad; engrapar. La rúbrica solicita recuadro de identificación sin portada.
