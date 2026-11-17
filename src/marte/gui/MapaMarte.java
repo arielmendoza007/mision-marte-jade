@@ -1,56 +1,70 @@
 package marte.gui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import marte.modelo.Lectura;
 import marte.modelo.Resultado;
 
-/** Cámara frontal. Cada movimiento comienza con un aviso recibido del rover. */
+/** Vista esquemática de las acciones informadas por el rover. */
 public class MapaMarte extends JPanel {
-    private String lugar = "Base";
-    private String accion = "";
+    private String accion = "En base";
     private String ensayo = "NORMAL";
+    private String sector = "Sin lectura";
     private boolean roca;
     private int polvo;
+    private double posicion, origen, destino;
     private long inicio;
-    private final Timer cuadros = new Timer(50, e -> repaint());
+    private boolean animando;
+    private final Timer cuadros = new Timer(40, e -> repaint());
+
+    public MapaMarte() { setBackground(Color.WHITE); }
 
     public void seleccionarSector(String escenario) {
+        cuadros.stop();
+        animando = false;
         ensayo = escenario;
-        lugar = "Base";
+        accion = "Esperando lectura";
+        sector = "Sin lectura";
+        posicion = 0;
         polvo = 0;
         roca = false;
-        detener();
+        repaint();
     }
 
     public void mostrarLectura(Lectura lectura) {
-        lugar = lectura.getSector().getNombre();
+        sector = lectura.getSector().getNombre();
         polvo = lectura.getPolvo();
         roca = lectura.getObstaculo();
         repaint();
     }
 
     public void mostrarResultado(Resultado resultado) {
-        detener();
-        if (resultado.getFinalizado()) {
-            lugar = "Base";
-            roca = false;
-            polvo = 0;
-        } else if (resultado.getAccion().startsWith("EN CURSO ")) {
+        if (resultado.getAccion().startsWith("EN CURSO ")) {
             accion = resultado.getAccion().substring(9);
+            origen = posicion;
+            destino = "REGRESAR".equals(accion) ? 0
+                : "AVANZAR".equals(accion) ? Math.min(2, posicion + 1) : posicion;
             inicio = System.currentTimeMillis();
+            animando = true;
             cuadros.start();
+        } else {
+            // El mensaje confirma la posición; el temporizador sólo dibuja.
+            if (animando) posicion = destino;
+            animando = false;
+            cuadros.stop();
+            accion = resultado.getAccion();
+            if (resultado.getFinalizado()) {
+                posicion = 0;
+                roca = false;
+                accion = resultado.getObjetivo() ? "En base: muestra entregada" : "En base: regreso preventivo";
+            }
         }
-        repaint();
-    }
-
-    private void detener() {
-        accion = "";
-        cuadros.stop();
         repaint();
     }
 
@@ -62,58 +76,58 @@ public class MapaMarte extends JPanel {
     @Override protected void paintComponent(Graphics grafico) {
         super.paintComponent(grafico);
         Graphics2D g = (Graphics2D) grafico.create();
-        double progreso = Math.min(1, (System.currentTimeMillis() - inicio)
-            / ("REGRESAR".equals(accion) ? 4200.0 : 3200.0));
-        if (progreso >= 1) cuadros.stop();
-        boolean marcha = "AVANZAR".equals(accion) || "RODEAR".equals(accion) || "REGRESAR".equals(accion);
-        int lateral = "RODEAR".equals(accion) ? (int)(115 * Math.sin(Math.PI * progreso)) : 0;
-        // Coordenadas de cámara en un lienzo de 480 por 260.
-        g.scale(getWidth() / 480.0, getHeight() / 260.0);
-        g.setColor(new Color(221, 157, 116));
-        g.fillRect(0, 0, 480, 260);
-        g.setColor(new Color(255, 218, 155));
-        g.fillOval(370, 31, 21, 21);
-        g.setColor(new Color(146, 86, 74));
-        g.fillPolygon(new int[]{0,55,119,178,251,286,349,405,480,480,0},
-            new int[]{128,111,92,85,57,62,82,89,105,164,164}, 11);
-        g.setColor(new Color(179, 103, 74));
-        g.fillPolygon(new int[]{0,76,140,213,310,392,480,480,0},
-            new int[]{130,117,121,96,106,111,98,260,260}, 9);
-        g.setColor(new Color(195, 125, 85));
-        g.fillPolygon(new int[]{236,253,420,56}, new int[]{117,117,260,260}, 4);
-        for (int i = 0; i < 30; i++) {
-            double z = (i / 30.0 + (marcha ? progreso * .65 : 0)) % 1;
-            int x = (int)(240 + ((i * 73 % 451) - 225) * z * 2) - lateral;
-            int y = (int)(119 + 132 * z * z);
-            g.setColor(new Color(125, 76, 61));
-            g.fillRect(x, y, 1 + (int)(8*z), 1 + (int)(3*z));
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        int ancho = getWidth(), alto = getHeight();
+        int izquierda = 60, derecha = ancho - 65;
+        int suelo = alto - 90, cima = 120;
+        int medio = (izquierda + derecha) / 2, alturaMedia = (suelo + cima) / 2;
+        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        g.setColor(Color.DARK_GRAY);
+        g.drawString("Recorrido simulado · " + ensayo, 14, 24);
+        g.drawString("Última lectura: " + sector + " | Polvo: " + polvo + "/100", 14, 46);
+        g.setColor(new Color(225, 207, 186));
+        g.fillPolygon(new int[]{izquierda, derecha, ancho - 15, ancho - 15, izquierda},
+            new int[]{suelo, cima, cima, suelo + 22, suelo + 22}, 5);
+        g.setColor(new Color(120, 105, 90));
+        g.setStroke(new BasicStroke(2));
+        g.drawLine(izquierda, suelo, derecha, cima);
+        int[] xs = {izquierda, medio, derecha};
+        int[] ys = {suelo, alturaMedia, cima};
+        String[] nombres = {"Base / Falda", "Ladera", "Caldera"};
+        for (int i = 0; i < 3; i++) {
+            g.setColor(Color.WHITE);
+            g.fillOval(xs[i] - 5, ys[i] - 5, 10, 10);
+            g.setColor(Color.DARK_GRAY);
+            g.drawOval(xs[i] - 5, ys[i] - 5, 10, 10);
+            int texto = g.getFontMetrics().stringWidth(nombres[i]);
+            g.drawString(nombres[i], xs[i] - texto / 2, ys[i] + 35);
         }
         if (roca) {
-            g.translate(-lateral, 0);
-            g.setColor(new Color(83, 58, 61));
-            g.fillPolygon(new int[]{198,208,236,269,282,258,210},
-                new int[]{166,145,133,143,163,171,170}, 7);
-            g.translate(lateral, 0);
+            g.setColor(new Color(100, 90, 80));
+            g.fillRect(medio + 20, alturaMedia - 20, 15, 14);
+            g.drawString("Obstáculo", medio - 30, alturaMedia - 45);
         }
         if (polvo >= 70) {
-            g.setColor(new Color(233, 172, 117, 156));
-            g.fillRect(0, 0, 480, 260);
+            g.setColor(new Color(145, 100, 40));
+            g.drawString("Polvo alto: esperar", Math.max(14, derecha - 140), cima - 35);
         }
-        if ("ESCANEAR".equals(accion)) {
-            g.setColor(new Color(177, 238, 196));
-            g.drawRect(198, 115, 84, 51);
-            g.drawLine(198, 116 + (int)(48*progreso), 282, 116 + (int)(48*progreso));
-        }
-        g.setColor(new Color(50, 54, 56));
-        g.fillPolygon(new int[]{0,48,109,345,425,480,480,0},
-            new int[]{210,223,233,233,219,211,260,260}, 8);
+        double progreso = animando ? Math.min(1, (System.currentTimeMillis() - inicio)
+            / ("REGRESAR".equals(accion) ? 4200.0 : 3200.0)) : 0;
+        double punto = animando ? origen + (destino - origen) * progreso : posicion;
+        int x = izquierda + (int)((derecha - izquierda) * punto / 2);
+        int y = suelo + (int)((cima - suelo) * punto / 2);
+        // Rodear conserva el tramo: el desvío habilita el siguiente avance.
+        if (animando && "RODEAR".equals(accion)) y -= (int)(32 * Math.sin(Math.PI * progreso));
+        g.setColor(new Color(70, 90, 105));
+        g.fillRect(x - 17, y - 23, 34, 16);
+        g.drawLine(x, y - 23, x, y - 34);
+        g.setColor(Color.DARK_GRAY);
+        g.fillOval(x - 15, y - 10, 10, 10);
+        g.fillOval(x + 5, y - 10, 10, 10);
+        g.setFont(new Font("SansSerif", Font.BOLD, 14));
+        g.drawString("Rover: " + accion, 14, alto - 38);
+        g.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        g.drawString("Campamento en la falda. Dibujo sin escala.", 14, alto - 16);
         g.dispose();
-        grafico.setFont(new Font("SansSerif", Font.BOLD, 16));
-        grafico.setColor(Color.WHITE);
-        grafico.drawString("Cámara frontal   /   " + lugar, 14, getHeight()-15);
-        grafico.setColor(new Color(49, 43, 42));
-        grafico.drawString("Base   ·   Falda   ·   Ladera   ·   Caldera", 14, 25);
-        grafico.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        grafico.drawString("Ensayo " + ensayo, 14, 45);
     }
 }

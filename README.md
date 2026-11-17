@@ -4,7 +4,7 @@ Proyecto del tercer parcial de Sistemas Multiagentes. Es una **simulación didá
 
 ## Qué se hace en la interfaz
 
-El operador pulsa **Iniciar expedición**. En el menú **Ensayos** puede repetir una tormenta persistente o un caso con batería limitada. La cámara frontal representa las acciones que el rover comunica por ACL. Entorno genera lecturas reproducibles de Falda, Ladera y Caldera; Coordinador aplica las reglas del sistema experto; Rover decide si puede ejecutar cada propuesta y solicita por sí mismo la siguiente lectura. El viaje termina con muestra entregada o regreso preventivo. **Consultar rover** pide su estado actual por ACL.
+El operador pulsa **Iniciar expedición**. En el menú **Ensayos** puede repetir una tormenta persistente o un caso con batería limitada. El mapa lateral representa las acciones que el rover comunica por ACL. El campamento está en la falda y el dibujo no está a escala. La interfaz usa controles Swing sencillos y muestra por separado la propuesta y la respuesta del rover. Entorno genera lecturas reproducibles de Falda, Ladera y Caldera; Coordinador aplica las reglas del sistema experto; Rover decide si puede ejecutar cada propuesta y solicita por sí mismo la siguiente lectura. El viaje termina con muestra entregada o regreso preventivo. **Consultar rover** pide su estado actual por ACL.
 
 | Escenario | Suceso relevante | Resultado esperado |
 | --- | --- | --- |
