@@ -30,7 +30,7 @@ El Coordinador envía en `Metricas` por misión: **tasa de respuesta** = respues
 
 ## Iniciar en una computadora
 
-Descomprime el ZIP completo. Abre PowerShell **dentro de esta carpeta `rover-marte`**. Requiere JDK (`java` y `javac`); los scripts también buscan el instalado por la extensión Java de VS Code. El ZIP contiene `lib/jade.jar`.
+Descomprime el ZIP completo. Abre PowerShell **dentro de esta carpeta `Olympus-Mons`**. Requiere JDK (`java` y `javac`); los scripts también buscan el instalado por la extensión Java de VS Code. El ZIP contiene `lib/jade.jar`.
 
 El repositorio público contiene el código y los diagramas editables; para ejecutar una clonación, copia `jade.jar` del ZIP a `lib/jade.jar` o descarga JADE 4.6.0 desde el sitio oficial y coloca su JAR allí. El paquete Olympus-Mons de Actions incluye el PDF y las mediciones del ensayo automático. Desde un ZIP de código fuente, ejecuta Ensayar-Local.ps1 antes de generar los PDF; `documentacion/generar_pdf.py` permite regenerarlos en Windows con Python, `reportlab` y `pypdf`.
 
@@ -60,7 +60,7 @@ El contenedor principal abre la ventana y la GUI de JADE. El Rover **no tiene se
 
 ## Prueba presencial en dos laptops
 
-1. Copien la carpeta entera `rover-marte` en ambos equipos. Conecten los dos a la misma red o a la misma red virtual Hamachi y obtengan las IPv4 de ambos. Si usan Hamachi, utilicen la IPv4 que muestra Hamachi en cada laptop (por ejemplo, `25.x.x.x`); **no** `127.0.0.1`.
+1. Copien la carpeta entera `Olympus-Mons` en ambos equipos. Conecten los dos a la misma red o a la misma red virtual Hamachi y obtengan las IPv4 de ambos. Si usan Hamachi, utilicen la IPv4 que muestra Hamachi en cada laptop (por ejemplo, `25.x.x.x`); **no** `127.0.0.1`.
 2. En el equipo principal, desde esta carpeta, inicien el contenedor principal:
 
    ```powershell
