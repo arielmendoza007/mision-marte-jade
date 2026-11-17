@@ -15,4 +15,4 @@ En cada ronda una persona opera la consola y otra elige al azar quién explica l
 
 ## Antes de imprimir
 
-Completen el recuadro y la autoevaluación con los datos reales de los cinco. Anoten IP, contenedor, misión, muestras, batería y las dos medidas de la prueba física en la sección 8. Adjunten las capturas reales de ambas laptops. Regeneren el PDF y revisen una hoja horizontal al tamaño real. El documento se entrega paginado y engrapado.
+Verifiquen los cinco nombres y el 10/10 anotado para cada integrante; completen el nombre de la docente. Anoten IP, contenedor, misión, muestras, batería y las dos medidas de la prueba física en la sección 8. Adjunten las capturas reales de ambas laptops. Regeneren el PDF y revisen una hoja horizontal al tamaño real. El documento se entrega paginado y engrapado.
