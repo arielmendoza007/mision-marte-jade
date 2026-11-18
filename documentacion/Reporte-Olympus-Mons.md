@@ -5,7 +5,7 @@
 | Institución / curso | UAEH, ICBI / Optativa I: Sistemas Multiagentes, grupo 1 |
 | Proyecto | Expedición autónoma al borde de la caldera de Olympus Mons |
 | Equipo | Angel Ariel Mendoza Lopez; Brandon Torres de Paz; Leonardo Manriquez Ramos; Miguel Islas Reyes; Jesus Osvaldo Garcia Damian |
-| Docente / fecha de entrega | COMPLETAR / 18 de noviembre de 2026 |
+| Fecha de entrega | 18 de noviembre de 2026 |
 
 ## Autoevaluación del equipo
 
@@ -73,11 +73,11 @@ Registrar por separado los resultados entre laptops.
 
 ## Evidencias, discusión y límites
 
-Registro de laboratorio local: `ensayo-local.csv`, `metricas-local.txt`, `captura-consola-local.png`. La simulación fija el entorno para repetir y explicar causas; no usa sensores físicos, predicción meteorológica ni rutas geográficas reales. No se puede inferir viabilidad de una misión real por superar los tres ensayos. La red entre laptops, especialmente la ruta de retorno y reglas de firewall, debe ensayarse con equipos del grupo antes de entregar.
+Registro de laboratorio local: `ensayo-local.csv`, `metricas-local.txt`, `captura-consola-local.png`. La simulación fija el entorno para repetir y explicar causas; no usa sensores físicos, predicción meteorológica ni rutas geográficas reales. No se puede inferir viabilidad de una misión real por superar los tres ensayos. Con esta revisión falta repetir la demostración entre dos laptops y conservar evidencia del agente remoto; ya se ensayó localmente con dos procesos JADE.
 
 ## Conclusiones
 
-Tres agentes autónomos colaboran y negocian decisiones mediante JADE y una ontología compartida. El recorrido tiene meta y final verificables: completar muestra y retorno o abortar por seguridad. La interfaz deja ver la regla aplicada, el trayecto, los mensajes y las medidas; los tres escenarios locales ayudan a defender tanto el acierto como las limitaciones. Completar la conclusión del equipo con lo ocurrido en la prueba distribuida una vez realizada.
+Tres agentes autónomos colaboran y negocian decisiones mediante JADE y una ontología compartida. El recorrido tiene meta y final verificables: completar muestra y retorno o abortar por seguridad. La interfaz deja ver la regla aplicada, el trayecto, los mensajes y las medidas; los tres escenarios locales ayudan a defender tanto el acierto como las limitaciones. La prueba presencial con esta revisión permitirá comprobar además la comunicación entre contenedores en laptops distintas.
 
 ## Referencias bibliográficas
 
@@ -86,4 +86,4 @@ Tres agentes autónomos colaboran y negocian decisiones mediante JADE y una onto
 3. NASA. A Traverse Across the Summit of Olympus Mons. https://science.nasa.gov/photojournal/a-traverse-across-the-summit-of-olympus-mons/
 4. ESA. Olympus Mons — the caldera in close-up. https://www.esa.int/articles/about-us/directorates/science/mars-express/olympus-mons-the-caldera-in-close-up
 
-**Antes de imprimir:** completar el nombre de la docente; verificar con los cinco integrantes la escritura de sus nombres y la autoevaluación; anexar evidencia distribuida real, revisar paginado y legibilidad; engrapar. La rúbrica solicita recuadro de identificación sin portada.
+**Antes de imprimir:** verificar con los cinco integrantes la escritura de sus nombres y la autoevaluación; anexar evidencia distribuida real si está disponible, revisar paginado y legibilidad; engrapar. La rúbrica solicita recuadro de identificación sin portada.
