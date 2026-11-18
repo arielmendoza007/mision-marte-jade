@@ -19,3 +19,5 @@ public class Propuesta implements Predicate {
     public Lectura getLectura() { return lectura; }
     public void setLectura(Lectura lectura) { this.lectura = lectura; }
 }
+
+

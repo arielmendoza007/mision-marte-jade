@@ -19,7 +19,7 @@ El equipo propone una autoevaluación individual de **10/10** para cada integran
 | Miguel Islas Reyes | 10/10 |
 | Jesus Osvaldo Garcia Damian | 10/10 |
 
-**Justificación conjunta:** se prepararon tres agentes con responsabilidades distintas, reglas de sistema experto, comunicación ACL, ontología con instancias anidadas, interfaz, diagramas, tres ensayos reproducibles y medidas registradas. Cada integrante debe estudiar y demostrar el funcionamiento completo ante la docente. **Pendientes para sustentar la entrega:** ejecutar y registrar la conexión entre dos laptops y comprobar que los cinco pueden explicar y solucionar un fallo de su implementación. No atribuir tareas individuales ni errores corregidos a una persona sin confirmarlo con el equipo.
+**Justificación conjunta:** se prepararon tres agentes con responsabilidades distintas, reglas de sistema experto, comunicación ACL, ontología con instancias anidadas, interfaz, diagramas, tres ensayos reproducibles y medidas registradas. Cada integrante debe estudiar y demostrar el funcionamiento completo ante la docente. **Pendientes para sustentar la entrega:** repetir y documentar la prueba distribuida con esta revisión y comprobar que los cinco pueden explicar y solucionar un fallo de su implementación. El equipo informó que conectó dos laptops por Hamachi con la versión anterior. No atribuir tareas individuales ni errores corregidos a una persona sin confirmarlo con el equipo.
 
 ## Introducción
 
@@ -49,11 +49,11 @@ La pantalla principal ofrece iniciar la expedición y consultar el Rover. El men
 
 ## Desarrollo — 5. ACL, performativas y plantillas (2)
 
-Se usan **seis performativas**: `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `ACCEPT_PROPOSAL`, `REJECT_PROPOSAL`. `Entorno.Escuchar`, `Coordinador.Escuchar` y `Rover.Escuchar` combinan `MessageTemplate.MatchSender`, `MatchPerformative` y `MatchOntology` para consumir sólo mensajes correspondientes; el identificador M-n relaciona su contenido con una expedición. Ejemplo normal: `QUERY_REF Exploracion(Caldera)` → `INFORM Observacion(Lectura(Caldera))` → `REQUEST Observacion` → `PROPOSE Propuesta(ESCANEAR)` → `ACCEPT_PROPOSAL` → `INFORM Resultado`. En BATERIA la respuesta al escaneo es `REJECT_PROPOSAL` y el Rover produce un `Resultado` final de regreso.
+Se usan **seis performativas**: `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `ACCEPT_PROPOSAL`, `REJECT_PROPOSAL`. `EscucharEntorno`, `EscucharCoordinador` y `EscucharRover` combinan `MessageTemplate.MatchSender`, `MatchPerformative` y `MatchOntology` para consumir sólo mensajes correspondientes; el identificador M-n relaciona su contenido con una expedición. Ejemplo normal: `QUERY_REF Exploracion(Caldera)` → `INFORM Observacion(Lectura(Caldera))` → `REQUEST Observacion` → `PROPOSE Propuesta(ESCANEAR)` → `ACCEPT_PROPOSAL` → `INFORM Resultado`. En BATERIA la respuesta al escaneo es `REJECT_PROPOSAL` y el Rover produce un `Resultado` final de regreso.
 
 ## Desarrollo — 6. Comportamientos (0.5)
 
-`CyclicBehaviour`: escucha permanente en los tres agentes. `SimpleBehaviour`: `Coordinador.Evaluar` procesa exactamente una lectura y declara `done()`. `OneShotBehaviour`: `Entorno` inicia y consulta; `Rover.Presentarse` informa su estado inicial. `TickerBehaviour`: `Rover.Telemetria` informa estado cada cinco segundos. `WakerBehaviour`: `EjecutarAccion` completa la acción a los 3200 ms. El regreso dispone de 4200 ms y Entorno controla un plazo de 45 s. La espera no bloquea el buzón del agente.
+`CyclicBehaviour`: `EscucharEntorno`, `EscucharCoordinador` y `EscucharRover` atienden mensajes. `SimpleBehaviour`: `EvaluarLectura` procesa una lectura y termina con `done()`. `OneShotBehaviour`: `IniciarMision`, `ConsultarRover` y `PresentarseRover` actúan una vez. `TickerBehaviour`: `TelemetriaRover` informa estado cada cinco segundos. `WakerBehaviour`: `EjecutarAccion` completa la acción a los 3200 ms; `RegresarBase` termina el regreso tras 4200 ms; `VigilarMision` vence a los 45 s. Ninguna espera bloquea el buzón del agente.
 
 ## Desarrollo — 7. Ontología e instancias (2)
 
@@ -61,7 +61,7 @@ Se usan **seis performativas**: `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `AC
 
 ## Desarrollo — 8. Distribución, evaluación y sistema experto (2)
 
-**a y b) Dos equipos y comunicación efectiva.** Principal ejecuta Entorno y Coordinador; equipo remoto ejecuta Rover. `Iniciar-Principal.ps1 -Puerto 1099 -IpLocal IP_PRINCIPAL -JadeGui` y `Iniciar-Rover.ps1 -HostPrincipal IP_PRINCIPAL -Puerto 1099 -IpLocal IP_ROVER -PuertoLocal 1100`. En red común o Hamachi se usan IP reales o virtuales, jamás `127.0.0.1`. Verificar `Test-NetConnection`, Rover en RMA, `Consultar rover`, mismo M-n en ambos logs, regreso y tiempos. **Pendiente: insertar aquí capturas y resultados realmente obtenidos en dos computadoras.**
+**a y b) Dos equipos y comunicación efectiva.** Principal ejecuta Entorno y Coordinador; equipo remoto ejecuta Rover. `Iniciar-Principal.ps1 -Puerto 1099 -IpLocal IP_PRINCIPAL -JadeGui` y `Iniciar-Rover.ps1 -HostPrincipal IP_PRINCIPAL -Puerto 1099 -IpLocal IP_ROVER -PuertoLocal 1100`. En red común o Hamachi se usan IP reales o virtuales, jamás `127.0.0.1`. Verificar `Test-NetConnection`, Rover en RMA, `Consultar rover`, mismo M-n en ambos logs, regreso y tiempos. **Prueba de esta revisión pendiente:** confirmar Rover en RMA desde otra laptop, una misión completa y registrar capturas y resultados. El equipo informó que la versión anterior conectó mediante Hamachi; no se atribuyen sus medidas a esta revisión.
 
 **c) Dos medidas de evaluación aplicadas.** El artículo de Soza Pollman [2] estudia habilidad social, autonomía y proactividad; adaptamos dos indicadores observables al intercambio de este proyecto sin atribuirle nuestras fórmulas: (1) tasa de respuesta a propuestas = respuestas (`ACCEPT` + `REJECT`) / propuestas × 100; (2) latencia media de respuesta = suma de tiempos entre `PROPOSE` y respuesta / número de respuestas, en microsegundos. `Coordinador` registra ambas por M-n y envía `Metricas` por ACL al Entorno. Además Entorno mide tiempo total hasta regreso, y `ensayo-local.csv` registra éxito del objetivo por escenario. Los valores siguientes proceden del CSV generado al ensayar la versión que se imprime en una máquina. La tasa se obtiene dividiendo los dos conteos. Un rechazo informado cuenta como respuesta.
 

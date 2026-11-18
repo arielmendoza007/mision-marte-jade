@@ -187,25 +187,25 @@ def casos():
 
 
 def clases():
-    c = base("02-clases.pdf", "2b. Clases y ontología", "Los agentes negocian; los predicados transportan conceptos anidados")
-    caja(c, 50, 336, 207, 158, "Entorno : Agent", ["- escenarios, inicios", "- medir(orden, id)", "- iniciar(escenario)"])
-    caja(c, 317, 336, 207, 158, "Coordinador : Agent", ["- propuestas, respuestas", "+ Escuchar.action()", "+ Evaluar.action()"])
-    caja(c, 584, 336, 207, 158, "Rover : Agent", ["- bateria, tramo, esperas", "- pedirLectura()", "- regresar()"])
-    linea(c, 260, 408, 311, 408, "INFORM")
-    linea(c, 529, 407, 579, 407, "PROPOSE")
-    linea(c, 585, 355, 526, 355, "REQUEST")
-    for x, titulo in [(45,"Observacion"), (217,"Propuesta"), (389,"Resultado"), (561,"Lectura"), (713,"Sector")]:
-        caja(c, x, 145, 130 if x<713 else 100, 82, titulo,
-            ["Predicate" if x<561 else "Concept"])
-    for x in [110, 282, 454]:
-        c.setStrokeColor(AZUL)
-        c.line(x, 228, x, 253)
-    linea(c, 110, 253, 626, 253, "cada uno incluye Lectura")
-    linea(c, 626, 253, 626, 228)
-    linea(c, 693, 186, 710, 186, "1")
-    texto(c, 415, 105, "Observacion, Propuesta y Resultado incluyen Lectura; Lectura incluye Sector.", 11)
+    c = base("02-clases.pdf", "2b. Clases y ontología", "Agentes JADE, sus comportamientos y objetos anidados (resumen legible)")
+    columnas = [
+        (48, "Entorno : Agent", ["EscucharEntorno (Cyclic)", "IniciarMision (OneShot)", "ConsultarRover (OneShot)", "VigilarMision (Waker)"]),
+        (317, "Coordinador : Agent", ["EscucharCoordinador (Cyclic)", "EvaluarLectura (Simple)"]),
+        (586, "Rover : Agent", ["PresentarseRover (OneShot)", "EscucharRover (Cyclic)", "TelemetriaRover (Ticker)", "EjecutarAccion (Waker)", "RegresarBase (Waker)"]),
+    ]
+    for x, agente, comportamientos in columnas:
+        caja(c, x, 426, 206, 70, agente)
+        caja(c, x, 252, 206, 152, "Comportamientos", comportamientos)
+        linea(c, x + 103, 425, x + 103, 406)
+    for x, titulo, tipo, ancho in [(44, "Observacion", "Predicate", 125),
+                                  (209, "Propuesta", "Predicate", 125),
+                                  (374, "Resultado", "Predicate", 125),
+                                  (539, "Lectura", "Concept", 125),
+                                  (704, "Sector", "Concept", 95)]:
+        caja(c, x, 118, ancho, 76, titulo, [tipo])
+    texto(c, W/2, 92, "Observacion, Propuesta y Resultado contienen Lectura; Lectura contiene Sector.", 11)
+    texto(c, W/2, 72, "Otros predicados: Exploracion, EstadoRover y Metricas. Archivos editables: 02-clases.puml", 10)
     c.showPage(); c.save()
-
 
 def interaccion():
     c = base("03-interaccion.pdf", "2c. Interacción AUML", "Mismo conversation-id M-n en todo el ciclo; los trazos horizontales son mensajes ACL")

@@ -22,7 +22,7 @@ La batería se inicializa **por escenario al iniciar una nueva expedición**. No
 
 Intercambian `REQUEST`, `QUERY_REF`, `INFORM`, `PROPOSE`, `ACCEPT_PROPOSAL` y `REJECT_PROPOSAL`; `conversation-id` agrupa todos los mensajes de una expedición. Los tres pares de agentes intercambian mensajes en ambos sentidos. `MessageTemplate` filtra por remitente, performativa y ontología. `Mensajes.crear` codifica objetos con FIPA-SL; `Mensajes.leer` los recupera. `OntologiaMarte` registra `Sector` (Concept), `Lectura` (Concept), `Exploracion`, `Observacion`, `Propuesta`, `Resultado`, `EstadoRover` y `Metricas` (Predicate). Ejemplo de objetos anidados: `Observacion → Lectura → Sector`.
 
-Comportamientos usados: `CyclicBehaviour` (buzones), `SimpleBehaviour` (evaluar una lectura), `OneShotBehaviour` (inicio y consulta), `TickerBehaviour` (telemetría), `WakerBehaviour` (acciones temporizadas y plazo de misión). Las clases concretas están en `src/marte/agentes/`.
+Comportamientos usados: `CyclicBehaviour` (buzones), `SimpleBehaviour` (evaluar una lectura), `OneShotBehaviour` (inicio y consulta), `TickerBehaviour` (telemetría), `WakerBehaviour` (acciones temporizadas y plazo de misión). Los 11 comportamientos están separados por agente en `src/marte/comportamientos/entorno/`, `src/marte/comportamientos/coordinador/` y `src/marte/comportamientos/rover/`. Los agentes siguen en `src/marte/agentes/`.
 
 ## Medición
 

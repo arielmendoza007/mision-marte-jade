@@ -12,8 +12,8 @@ class Entorno <<Agent>> {
 class Coordinador <<Agent>> {
   - propuestas : Map
   - respuestas : Map
-  + Escuchar.action()
-  + Evaluar.action()
+  + registrarPropuesta(Propuesta)
+  + registrarRespuesta(Propuesta)
 }
 class Rover <<Agent>> {
   - bateria : int
@@ -22,11 +22,33 @@ class Rover <<Agent>> {
   - pedirLectura(boolean, boolean, boolean)
   - regresar(Propuesta, boolean, String)
 }
+class EscucharEntorno <<CyclicBehaviour>>
+class IniciarMision <<OneShotBehaviour>>
+class ConsultarRover <<OneShotBehaviour>>
+class VigilarMision <<WakerBehaviour>>
+class EscucharCoordinador <<CyclicBehaviour>>
+class EvaluarLectura <<SimpleBehaviour>>
+class PresentarseRover <<OneShotBehaviour>>
+class EscucharRover <<CyclicBehaviour>>
+class TelemetriaRover <<TickerBehaviour>>
+class EjecutarAccion <<WakerBehaviour>>
+class RegresarBase <<WakerBehaviour>>
 class Observacion <<Predicate>>
 class Propuesta <<Predicate>>
 class Resultado <<Predicate>>
 class Lectura <<Concept>>
 class Sector <<Concept>>
+Entorno --> EscucharEntorno
+Entorno --> IniciarMision
+Entorno --> ConsultarRover
+Entorno --> VigilarMision
+Coordinador --> EscucharCoordinador
+Coordinador --> EvaluarLectura
+Rover --> PresentarseRover
+Rover --> EscucharRover
+Rover --> TelemetriaRover
+Rover --> EjecutarAccion
+Rover --> RegresarBase
 Entorno --> Coordinador : INFORM resultado
 Coordinador --> Rover : PROPOSE
 Rover --> Entorno : QUERY_REF / INFORM

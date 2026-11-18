@@ -23,7 +23,7 @@
 ## Preguntas que deben saber resolver todos
 
 - **¿Por qué tres agentes?** El Entorno mantiene el mundo y muestra resultados; Coordinador propone con reglas; Rover guarda su estado y decide si ejecuta. Cada uno tiene objetivo y responsabilidad propios.
-- **¿Dónde está el sistema experto?** En `Coordinador.Evaluar`: reglas ordenadas sobre polvo, obstáculo, tramo, mineral y confirmación. El resultado es una `Propuesta`, no un movimiento obligatorio.
+- **¿Dónde está el sistema experto?** En `EvaluarLectura`: reglas ordenadas sobre polvo, obstáculo, tramo, mineral y confirmación. El resultado es una `Propuesta`, no un movimiento obligatorio.
 - **¿Dónde está la autonomía?** El Rover inicia nuevas lecturas, conserva batería y esperas, rechaza una orden insegura y regresa por su cuenta tras muestrear.
 - **¿Qué se manda realmente?** JADE ACL con performativa, remitente/destinatario, ontología `MisionMarte`, lenguaje `fipa-sl`, `conversation-id` y contenido codificado con `fillContent`. No se manda texto escrito a mano como sustituto de la ontología.
 - **¿Qué filtra `MessageTemplate`?** Remitente, performativa y ontología; identifica qué mensajes puede atender un comportamiento. La misión `M-n` se valida al procesar su contenido.
